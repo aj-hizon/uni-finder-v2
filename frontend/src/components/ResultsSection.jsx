@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+
 
 // Leaflet + React-Leaflet imports
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
@@ -68,13 +68,10 @@ function ResultsSection({ results, message }) {
   const [schoolStrengths, setSchoolStrengths] = useState({});
   const [pinnedLocation, setPinnedLocation] = useState(null);
   const [showPinMap, setShowPinMap] = useState(false);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
 
-  // Sorting / filtering
-  const [sortOption, setSortOption] = useState("");
-  const [tuitionRange, setTuitionRange] = useState("");
-  const [schoolTypeFilter, setSchoolTypeFilter] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
-  // Dynamic filter states
+
+
 const [activeFilter, setActiveFilter] = useState(""); // Main filter selected
 const [subOption, setSubOption] = useState(""); // Sub-option selected (High-Low, Tuition range, etc.)
 
@@ -107,36 +104,46 @@ const [subOption, setSubOption] = useState(""); // Sub-option selected (High-Low
 
   // Fetch school strengths
   useEffect(() => {
-    fetch("http://localhost:8000/api/school-strengths")
-      .then((res) => res.json())
-      .then((data) => {
-        const dataObject = {};
-        (data.schools || []).forEach((school) => {
-          dataObject[school.name] = school;
-        });
-        setSchoolStrengths(dataObject);
-      })
-      .catch(console.error);
-  }, []);
+  fetch("http://localhost:8000/api/school-strengths")
+    .then((res) => res.json())
+    .then((data) => {
+      const dataObject = {};
+      (data.schools || []).forEach((school) => {
+        dataObject[school.school] = school; // <-- use `school.school` now
+      });
+      setSchoolStrengths(dataObject);
+    })
+    .catch(console.error);
+}, []);
+
 
   // Reset pin map when switching expanded card
   useEffect(() => setShowPinMap(false), [expandedIndex]);
 
   // Handle compare checkbox
   const handleCheckboxChange = (item) => {
-    const isAlreadySelected = selectedSchools.some(
-      (school) => school.school === item.school && school.program === item.program
+  const isAlreadySelected = selectedSchools.some(
+    (school) => school.school === item.school && school.program === item.program
+  );
+
+  if (isAlreadySelected) {
+    setSelectedSchools((prev) =>
+      prev.filter(
+        (school) => !(school.school === item.school && school.program === item.program)
+      )
     );
-    if (isAlreadySelected) {
-      setSelectedSchools((prev) =>
-        prev.filter(
-          (school) => !(school.school === item.school && school.program === item.program)
-        )
-      );
-    } else {
-      setSelectedSchools((prev) => [...prev, item]);
+  } else {
+    if (selectedSchools.length >= 3) { // 🔹 changed from 5 → 3
+      setShowLimitWarning(true);
+      setTimeout(() => setShowLimitWarning(false), 2500); // hide after 2.5s
+      return;
     }
-  };
+    setSelectedSchools((prev) => [...prev, item]);
+  }
+};
+
+
+
 
   // Determine displayed results based on only one active filter/subOption
 let displayedResults = results ? [...results] : [];
@@ -165,8 +172,26 @@ if (activeFilter === "board" && subOption) {
 } else if (activeFilter === "location" && subOption) {
   displayedResults = displayedResults.filter((item) => item.location === subOption);
 } else if (activeFilter === "unirank") {
-  displayedResults.sort((a, b) => (parseInt(a.unirank) || 999) - (parseInt(b.unirank) || 999));
+  // --- Only for UniRank sorting ---
+  // Step 1: Group programs by school
+  const grouped = {};
+  results.forEach((item) => {
+    if (!grouped[item.school]) grouped[item.school] = [];
+    grouped[item.school].push(item);
+  });
+
+  // Step 2: Sort schools by their UniRank
+  const sortedSchools = Object.keys(grouped).sort((a, b) => {
+    const rankA = parseInt(grouped[a][0].uni_rank) || 999;
+    const rankB = parseInt(grouped[b][0].uni_rank) || 999;
+    return rankA - rankB;
+  });
+
+  // Step 3: Flatten back — programs grouped per school
+  displayedResults = sortedSchools.flatMap((school) => grouped[school]);
 }
+
+
 
 
   // Peso Icon
@@ -286,6 +311,8 @@ if (activeFilter === "board" && subOption) {
               {message || "No results found."}
             </p>
           )}
+          
+
 
           {displayedResults.map((item, index) => {
             const isExpanded = expandedIndex === index;
@@ -303,9 +330,20 @@ if (activeFilter === "board" && subOption) {
               );
               distanceText = `Approx. ${distance.toFixed(2)} km from your detected/pinned location to ${item.school}`;
             }
-            const rank = index + 1;
-            const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
+            // Compute rank based on first appearance of each school
+
+// Compute rank only once per school (only in UniRank mode)
+let rank, medal;
+if (activeFilter === "unirank") {
+  const uniqueSchools = [...new Set(displayedResults.map((r) => r.school))];
+  rank = uniqueSchools.indexOf(item.school) + 1;
+} else {
+  rank = index + 1;
+}
+medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
+
             const rankColor = "bg-[rgba(20,40,100,0.4)] backdrop-blur-lg border-[1.5px] border-[rgba(255,255,255,0.25)] shadow-lg";
+            
 
             return (
               <div key={index}
@@ -635,22 +673,38 @@ if (activeFilter === "board" && subOption) {
     <span>Try Again</span>
   </button>
 
-  {/* Compare Button (only shows if 2 or more selected) */}
-  {selectedSchools.length >= 2 && (
-    <button
-      className="flex items-center justify-center text-white text-xs sm:text-sm font-Poppins font-medium 
-                 !px-8 !py-3 sm:!px-8 sm:!py-3 !rounded-full !bg-blue-800/20 !backdrop-blur-md 
-                 !border !border-white/30 !shadow-lg hover:!bg-blue-800/30 transition duration-300 ease-in-out 
-                 w-full sm:w-auto"
-      style={{
-        WebkitBackdropFilter: "blur(10px)",
-        backdropFilter: "blur(10px)",
-      }}
-      onClick={() => navigate("/compare-program", { state: { selectedSchools } })}
-    >
-      Compare Now ({selectedSchools.length})
-    </button>
-  )}
+{selectedSchools.length >= 2 && (
+  <button
+    disabled={selectedSchools.length > 3}
+    className={`flex items-center justify-center text-white text-xs sm:text-sm font-Poppins font-medium 
+                 !px-8 !py-3 sm:!px-8 sm:!py-3 !rounded-full !backdrop-blur-md 
+                 !border !border-white/30 !shadow-lg transition duration-300 ease-in-out 
+                 w-full sm:w-auto
+                 ${selectedSchools.length > 3 
+                   ? "!bg-gray-500/40 cursor-not-allowed" 
+                   : "!bg-blue-800/20 hover:!bg-blue-800/30"}`}
+    style={{
+      WebkitBackdropFilter: "blur(10px)",
+      backdropFilter: "blur(10px)",
+    }}
+    onClick={() => {
+      if (selectedSchools.length <= 3)
+        navigate("/compare-program", { state: { selectedSchools } });
+    }}
+  >
+    Compare Now ({selectedSchools.length})
+  </button>
+)}
+
+{showLimitWarning && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-[9999]">
+    <div className="bg-white text-red-600 font-semibold px-6 py-4 rounded-lg shadow-lg text-center">
+      ⚠️ You can only compare up to 3 programs at a time.
+    </div>
+  </div>
+)}
+
+
 </div>
 
             

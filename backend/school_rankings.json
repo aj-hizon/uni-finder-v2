@@ -1,0 +1,89 @@
+{
+  "programs": {
+    "Engineering": [
+      { "school_id": "bulsu", "school": "Bulacan State University", "rating": 8.2 },
+      { "school_id": "hau", "school": "Holy Angel University", "rating": 7.8 },
+      { "school_id": "auf", "school": "Angeles University Foundation", "rating": 7.3 },
+      { "school_id": "psu", "school": "Pampanga State University", "rating": 6.4 },
+      { "school_id": "ua", "school": "University of the Assumption", "rating": 6.0 },
+      { "school_id": "fatima", "school": "Our Lady Of Fatima University", "rating": 5.7 },
+      { "school_id": "ama_angeles", "school": "AMA Computer College – Angeles City", "rating": 5.0 },
+      { "school_id": "ama_sf", "school": "AMA Computer College – San Fernando", "rating": 5.0 },
+      { "school_id": "psau", "school": "Pampanga State Agricultural University", "rating": 4.8 }
+    ],
+    "Architecture": [
+      { "school_id": "hau", "school": "Holy Angel University", "rating": 8.5 },
+      { "school_id": "auf", "school": "Angeles University Foundation", "rating": 8.5 },
+      { "school_id": "bulsu", "school": "Bulacan State University", "rating": 8.0 },
+      { "school_id": "ua", "school": "University of the Assumption", "rating": 7.5 },
+      { "school_id": "psu", "school": "Pampanga State University", "rating": 7.0 }
+    ],
+    "Medicine": [
+      { "school_id": "auf", "school": "Angeles University Foundation", "rating": 9.5 },
+      { "school_id": "hau", "school": "Holy Angel University", "rating": 8.0 },
+      { "school_id": "ua", "school": "University of the Assumption", "rating": 8.0 },
+      { "school_id": "olfu", "school": "Our Lady Of Fatima University", "rating": 7.0 },
+      { "school_id": "bulsu", "school": "Bulacan State University", "rating": 7.0 },
+      { "school_id": "psu", "school": "Pampanga State University", "rating": 6.0 },
+      { "school_id": "psau", "school": "Pampanga State Agricultural University", "rating": 5.0 }
+    ],
+    "Accounting": [
+      { "school_id": "auf", "school": "Angeles University Foundation", "rating": 9.0 },
+      { "school_id": "hau", "school": "Holy Angel University", "rating": 8.0 },
+      { "school_id": "ua", "school": "University of the Assumption", "rating": 7.0 },
+      { "school_id": "bulsu", "school": "Bulacan State University", "rating": 6.8 },
+      { "school_id": "olfu", "school": "Our Lady Of Fatima University - Pampanga", "rating": 6.5 },
+      { "school_id": "psu", "school": "Pampanga State University", "rating": 6.5 },
+      { "school_id": "cca_angeles", "school": "City College of Angeles", "rating": 6.0 },
+      { "school_id": "cca_sf", "school": "City College of San Fernando, Pampanga", "rating": 6.0 },
+      { "school_id": "cca_mabalacat", "school": "Mabalacat City College", "rating": 6.0 },
+      { "school_id": "ama_angeles", "school": "AMA Computer College – Angeles City", "rating": 5.0 },
+      { "school_id": "ama_sf", "school": "AMA Computer College – San Fernando", "rating": 5.0 }
+    ],
+    "Computing Studies": [
+      { "school_id": "auf", "school": "Angeles University Foundation", "rating": 9.0 },
+      { "school_id": "hau", "school": "Holy Angel University", "rating": 8.5 },
+      { "school_id": "bulsu", "school": "Bulacan State University", "rating": 8.0 },
+      { "school_id": "olfu", "school": "Our Lady Of Fatima University - Pampanga", "rating": 7.0 },
+      { "school_id": "psu_bacolor", "school": "Pampanga State University - Bacolor", "rating": 6.5 },
+      { "school_id": "psu_mexico", "school": "Pampanga State University - Mexico", "rating": 6.0 },
+      { "school_id": "ua", "school": "University of the Assumption", "rating": 6.0 },
+      { "school_id": "psau", "school": "Pampanga State Agricultural University", "rating": 5.0 },
+      { "school_id": "ama_angeles", "school": "AMA Computer College – Angeles City", "rating": 5.0 },
+      { "school_id": "ama_sf", "school": "AMA Computer College – San Fernando", "rating": 5.0 },
+      { "school_id": "celtech", "school": "Celtech College", "rating": 5.0 },
+      { "school_id": "cca_angeles", "school": "City College of Angeles", "rating": 4.5 },
+      { "school_id": "cca_sf", "school": "City College of San Fernando, Pampanga", "rating": 4.5 },
+      { "school_id": "cca_mabalacat", "school": "Mabalacat City College", "rating": 4.5 }
+    ],
+    "Business": [
+      { "school_id": "up_clark", "school": "UPEP PAMPANGA", "rating": 9.5 },
+      { "school_id": "auf", "school": "Angeles University Foundation", "rating": 9.0 },
+      { "school_id": "hau", "school": "Holy Angel University", "rating": 8.5 },
+      { "school_id": "bulsu", "school": "Bulacan State University", "rating": 8.0 },
+      { "school_id": "ua", "school": "University of the Assumption", "rating": 7.0 },
+      { "school_id": "olfu", "school": "Our Lady Of Fatima University - Pampanga", "rating": 6.5 },
+      { "school_id": "psu", "school": "Pampanga State University - Main", "rating": 6.5 },
+      { "school_id": "psau", "school": "Pampanga State Agricultural University", "rating": 6.0 },
+      { "school_id": "ama_angeles", "school": "AMA Computer College – Angeles City", "rating": 4.5 },
+      { "school_id": "ama_sf", "school": "AMA Computer College – San Fernando", "rating": 4.5 },
+      { "school_id": "cca_angeles", "school": "City College of Angeles", "rating": 4.0 },
+      { "school_id": "cca_sf", "school": "City College of San Fernando, Pampanga", "rating": 4.0 },
+      { "school_id": "cca_mabalacat", "school": "Mabalacat City College", "rating": 4.0 }
+    ],
+    "Education": [
+      { "school_id": "auf", "school": "Angeles University Foundation", "rating": 9.0 },
+      { "school_id": "hau", "school": "Holy Angel University", "rating": 8.8 },
+      { "school_id": "bulsu", "school": "Bulacan State University", "rating": 8.2 },
+      { "school_id": "psu", "school": "Pampanga State University - Main", "rating": 8.5 },
+      { "school_id": "ua", "school": "University of the Assumption", "rating": 7.5 },
+      { "school_id": "psau", "school": "Pampanga State Agricultural University", "rating": 7.0 },
+      { "school_id": "olfu", "school": "Our Lady Of Fatima University - Pampanga", "rating": 6.5 },
+      { "school_id": "cca_sf", "school": "City College of San Fernando, Pampanga", "rating": 6.0 },
+      { "school_id": "cca_angeles", "school": "City College of Angeles", "rating": 6.0 },
+      { "school_id": "cca_mabalacat", "school": "Mabalacat City College", "rating": 6.0 },
+      { "school_id": "ama_sf", "school": "AMA Computer College – San Fernando", "rating": 5.0 },
+      { "school_id": "ama_angeles", "school": "AMA Computer College – Angeles City", "rating": 5.0 }
+    ]
+  }
+}

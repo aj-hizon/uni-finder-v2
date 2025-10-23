@@ -17,11 +17,9 @@ function normalize(str) {
 
 function findSchoolData(schoolName, schoolsArray) {
   const normalizedName = normalize(schoolName);
-  return (
-    schoolsArray.find((school) => normalize(school.name) === normalizedName) ||
-    null
-  );
+  return schoolsArray.find((school) => normalize(school.school) === normalizedName) || null;
 }
+
 
 export default function ComparePage() {
   const location = useLocation();
@@ -37,17 +35,18 @@ export default function ComparePage() {
   );
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/school-strengths`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        return res.json();
-      })
-      .then((data) => setSchoolsData(data.schools || []))
-      .catch((error) => {
-        console.error("Error fetching school strengths:", error);
-        setSchoolsData([]);
-      });
-  }, []);
+  fetch("http://localhost:8000/api/school-strengths")
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return res.json(); 
+    })
+    .then((data) => setSchoolsData(data.schools || []))
+    .catch((error) => {
+      console.error("Error fetching school strengths:", error);
+      setSchoolsData([]);
+    });
+}, []);
+
 
   const specs = [
     { label: "Known For", key: "what_theyre_known_for", icon: Star },
@@ -93,7 +92,7 @@ export default function ComparePage() {
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat text-white font-Poppins pt-32 px-4 pb-24"
       style={{
-        backgroundImage: "url('/images/bg-home3.jpg')",
+        backgroundImage: "url('/images/6.jpg')",
       }}
     >
       {/* Navbar */}

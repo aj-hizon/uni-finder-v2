@@ -147,3 +147,8 @@ h1 {
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+
+/* Force all text inside CompareProgram to use Poppins */
+.compare-program * {
+  font-family: 'Poppins', sans-serif !important;
+}

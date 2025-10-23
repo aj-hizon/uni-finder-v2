@@ -82,14 +82,19 @@ def recommend(answers: dict, school_type: str = None, locations: list[str] = Non
             program_vector = np.array(entry["vector"]).reshape(1, -1)
             similarity_score = cosine_similarity(program_vector, combined_vector)[0][0]
 
+            # 🏫 Ranking & rating adjustments
             category = entry.get("category")
             rating_score = get_school_rating(entry["school"], category) or 0
-            final_score = round((similarity_score * (1 - CATEGORY_WEIGHT)) + (rating_score / 10 * CATEGORY_WEIGHT), 3)
+
+            final_score = round(
+                (similarity_score * (1 - CATEGORY_WEIGHT)) + (rating_score / 10 * CATEGORY_WEIGHT),
+                3
+            )
 
             result_item = {
-                "school": entry["school"],
-                "program": entry["name"],
-                "description": entry["description"],
+                "school": entry.get("school"),
+                "program": entry.get("name"),
+                "description": entry.get("description"),
                 "score": final_score,
                 "tuition_per_semester": entry.get("tuition_per_semester"),
                 "tuition_annual": entry.get("tuition_annual"),
@@ -102,6 +107,8 @@ def recommend(answers: dict, school_type: str = None, locations: list[str] = Non
                 "location": entry.get("location"),
                 "school_logo": entry.get("school_logo"),
                 "board_passing_rate": entry.get("board_passing_rate"),
+                "national_passing_rate": entry.get("national_passing_rate"),  
+                "uni_rank": entry.get("uni_rank"),  
                 "category": category,
             }
 
@@ -114,6 +121,7 @@ def recommend(answers: dict, school_type: str = None, locations: list[str] = Non
             print(f"⚠️ Skipping invalid entry: {e}")
             continue
 
+    # Step 3: Sort and prepare results
     strong_matches.sort(key=lambda x: x["score"], reverse=True)
     weak_matches.sort(key=lambda x: x["score"], reverse=True)
 

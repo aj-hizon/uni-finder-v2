@@ -18,7 +18,10 @@ programs = [
     "school_type": "Public",
     "board_passing_rate" : "Graduates of this program are not required to take any licensure exam.",
     "category" : "Business",
-    "tuition_notes" : "Miscellaneous and other fees are not yet included and may vary depending on the chosen program."
+    "tuition_notes" : "Miscellaneous and other fees are not yet included and may vary depending on the chosen program.",
+    "UNIRANK ": 1,
+  
+    
 },
 
 {

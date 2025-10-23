@@ -1,0 +1,532 @@
+{
+    "Pampanga State University": {
+        "logo": "psu.png",
+        "address": "Bacolor, Pampanga, Philippines",
+        "what_theyre_known_for": "One of the Philippines' oldest vocational-technical state universities, with historical strength in engineering and technology education.",
+        "institutional_strengths": [
+            "Engineering and Architecture",
+            "Information Technology",
+            "Teacher Education"
+        ],
+        "unirank": {
+            "central_luzon_rank": 66
+        },
+        "dorm_apartment": "On-campus dormitories and nearby apartments available.",
+        "transport_access": "Along Jose Abad Santos Ave., accessible via jeepneys and tricycles.",
+        "scholarships_offered": [
+            "CHED UniFAST-TES",
+            "Academic Scholarships",
+            "Athletic Grants"
+        ],
+        "maps_query": "Pampanga State University, Bacolor",
+        "coords": {
+            "lat": 15.032098,
+            "lng": 120.70601
+        }
+    },
+    "Pampanga State University - Apalit Campus": {
+        "logo": "psu_apalit.png",
+        "address": "Apalit, Pampanga, Philippines",
+        "what_theyre_known_for": "A rapidly growing satellite campus of Pampanga State University, offering programs in Engineering, Architecture, Real Estate, Logistics, and Business Administration.",
+        "institutional_strengths": [
+            "Engineering",
+            "Architecture",
+            "Real Estate Management",
+            "Logistics Management",
+            "Business Administration"
+        ],
+        "unirank": {
+            "central_luzon_rank": 66
+        },
+        "dorm_apartment": "No on-campus dormitories; private rental apartments and boarding houses are available nearby.",
+        "transport_access": "Easily accessible via MacArthur Highway, with tricycles and jeepneys as common local transport.",
+        "scholarships_offered": [
+            "CHED UniFAST - Tertiary Education Subsidy (TES)",
+            "Other government-funded scholarships",
+            "Local community-based grants (if applicable)"
+        ],
+        "maps_query": "Pampanga State University Apalit Campus",
+        "coords": {
+            "lat": 14.9496,
+            "lng": 120.7693
+        }
+    },
+    "Pampanga State University - Candaba Campus": {
+        "logo": "psu_candaba.png",
+        "address": "Candaba, Pampanga, Philippines",
+        "what_theyre_known_for": "A satellite campus of Pampanga State University offering programs in Education, Information Technology, Entrepreneurship, and Business Administration.",
+        "institutional_strengths": [
+            "Education (Elementary & Secondary)",
+            "Information Technology",
+            "Entrepreneurship",
+            "Business Administration"
+        ],
+        "unirank": {
+            "central_luzon_rank": 66
+        },
+        "dorm_apartment": "Limited or no on-campus dorms; homestays and private rentals are common options for students.",
+        "transport_access": "Accessible via the Candaba–San Miguel Road and local tricycles.",
+        "scholarships_offered": [
+            "CHED UniFAST - Tertiary Education Subsidy (TES)",
+            "DA-related scholarships (if applicable)",
+            "Various government and private sector grants"
+        ],
+        "maps_query": "Pampanga State University Candaba Campus",
+        "coords": {
+            "lat": 15.0917,
+            "lng": 120.8286
+        }
+    },
+    "Pampanga State University - Lubao Campus": {
+        "logo": "psu_lubao.png",
+        "address": "Lubao, Pampanga, Philippines",
+        "what_theyre_known_for": "Satellite campus offering Civil Engineering, Business Administration (Marketing), and Information Technology programs for western Pampanga.",
+        "institutional_strengths": [
+            "Civil Engineering",
+            "Business Administration (Marketing)",
+            "Information Technology"
+        ],
+        "unirank": {
+            "central_luzon_rank": 66
+        },
+        "dorm_apartment": "No on-campus dormitories; numerous private apartments and boarding houses are available in the vicinity.",
+        "transport_access": "Located near Jose Abad Santos Avenue, allowing for easy access via jeepneys and buses.",
+        "scholarships_offered": [
+            "CHED UniFAST - Tertiary Education Subsidy (TES)",
+            "Local government scholarship programs (where applicable)",
+            "Private foundation grants"
+        ],
+        "maps_query": "Pampanga State University Lubao Campus",
+        "coords": {
+            "lat": 14.9336,
+            "lng": 120.6012
+        }
+    },
+    "Pampanga State University - Mexico Campus": {
+        "logo": "psu_mexico.png",
+        "address": "Mexico, Pampanga, Philippines",
+        "what_theyre_known_for": "A comprehensive satellite campus offering programs in Business, Engineering, IT, Teacher Education, and Hospitality Management.",
+        "institutional_strengths": [
+            "Accountancy",
+            "Business Administration",
+            "Civil Engineering",
+            "Information Technology",
+            "Teacher Education",
+            "Hotel & Restaurant Management"
+        ],
+        "unirank": {
+            "central_luzon_rank": 66
+        },
+        "dorm_apartment": "Private dormitories and apartments are available for rent in areas surrounding the campus.",
+        "transport_access": "Accessible through the Mexico town proper via jeepney routes and tricycles.",
+        "scholarships_offered": [
+            "CHED UniFAST - Tertiary Education Subsidy (TES)",
+            "Other national and regional scholarship programs"
+        ],
+        "maps_query": "Pampanga State University Mexico Campus",
+        "coords": {
+            "lat": 15.0641,
+            "lng": 120.7202
+        }
+    },
+    "Pampanga State University - Porac Campus": {
+        "logo": "psu_porac.png",
+        "address": "Porac, Pampanga, Philippines",
+        "what_theyre_known_for": "A satellite campus offering teacher education, information technology, business administration, and social work, with strong community engagement and support for indigenous student inclusion.",
+        "institutional_strengths": [
+            "Elementary Education",
+            "Information Technology",
+            "Business Administration (Marketing)",
+            "Social Work"
+        ],
+        "unirank": {
+            "central_luzon_rank": 66
+        },
+        "dorm_apartment": "No on-campus dormitories; private rooms and boarding houses can be found in the nearby town center.",
+        "transport_access": "Accessible via jeepney and motorcycle routes from Porac poblacion.",
+        "scholarships_offered": [
+            "CHED UniFAST - Tertiary Education Subsidy (TES)",
+            "Scholarships for IP students (if applicable)",
+            "Various private and government grants"
+        ],
+        "maps_query": "Pampanga State University Porac Campus",
+        "coords": {
+            "lat": 15.0339,
+            "lng": 120.5432
+        }
+    },
+    "Pampanga State University - Santo Tomas Campus": {
+        "logo": "psu_sto_tomas.png",
+        "address": "Santo Tomas, Pampanga, Philippines",
+        "what_theyre_known_for": "A satellite campus offering programs in Elementary Education, Business Administration, Information Technology, and Hospitality Management.",
+        "institutional_strengths": [
+            "Elementary Education (General Education)",
+            "Business Administration (Marketing)",
+            "Information Technology",
+            "Hospitality Management"
+        ],
+        "unirank": {
+            "central_luzon_rank": 66
+        },
+        "dorm_apartment": "Limited or no dedicated on-site dorms; private accommodations are available in the municipality.",
+        "transport_access": "Located near the municipal hall, accessible by tricycles and multicabs.",
+        "scholarships_offered": [
+            "CHED UniFAST - Tertiary Education Subsidy (TES)",
+            "TESDA-related training subsidies (for TVET programs)",
+            "Industry-sponsored scholarships"
+        ],
+        "maps_query": "Pampanga State University Santo Tomas Campus",
+        "coords": {
+            "lat": 14.9807,
+            "lng": 120.7456
+        }
+    },
+    "Pampanga State Agricultural University": {
+        "logo": "psau.png",
+        "address": "Magalang, Pampanga, Philippines",
+        "what_theyre_known_for": "A distinguished state agricultural university with strong programs in agriculture, technology, veterinary medicine, and innovation.",
+        "institutional_strengths": [
+            "Agriculture & Agro-technology",
+            "Forestry & Fisheries",
+            "Engineering & Computer Studies",
+            "Veterinary Medicine",
+            "Hospitality & Entrepreneurship",
+            "Research & Extension Services"
+        ],
+        "unirank": {
+            "central_luzon_rank": 179
+        },
+        "dorm_apartment": "Dormitories and nearby housing available.",
+        "transport_access": "Accessible via local jeepneys; near Mt. Arayat road network.",
+        "scholarships_offered": [
+            "DA Agri Scholarships",
+            "TES Grants",
+            "Academic Incentives"
+        ],
+        "maps_query": "Pampanga State Agricultural University, Magalang",
+        "coords": {
+            "lat": 15.196346,
+            "lng": 120.681045
+        }
+    },
+    "Bulacan State University": {
+        "logo": "bulsu.png",
+        "address": "Malolos, Bulacan, Philippines",
+        "what_theyre_known_for": "Consistently high performance in board examinations, particularly in education and criminology, and strong offerings across multiple academic fields.",
+        "institutional_strengths": [
+            "Engineering",
+            "Business and Accountancy",
+            "Education",
+            "Architecture",
+            "Arts and Humanities",
+            "Environmental Science"
+        ],
+        "unirank": {
+            "central_luzon_rank": 85
+        },
+        "dorm_apartment": "Nearby private boarding houses available.",
+        "transport_access": "Along Malolos main road; near bus terminals and provincial jeepneys.",
+        "scholarships_offered": [
+            "CHED Grants",
+            "Local Gov't Scholarships",
+            "University Merit Grants"
+        ],
+        "maps_query": "Bulacan State University, Malolos",
+        "coords": {
+            "lat": 14.842238,
+            "lng": 120.811207
+        }
+    },
+    "UPEP PAMPANGA": {
+        "logo": "UP.png",
+        "address": "Clark, Pampanga, Philippines",
+        "what_theyre_known_for": "A branch of UP Diliman offering programs at the Clark Freeport Zone, benefitting from UP's national prestige.",
+        "institutional_strengths": [
+            "Public Administration",
+            "Business Management",
+            "Research"
+        ],
+        "unirank": {
+            "central_luzon_rank": 1
+        },
+        "dorm_apartment": "Limited UP housing; nearby private dormitories available.",
+        "transport_access": "Located inside Clark Freeport Zone; accessible via Grab, jeepneys, and shuttles.",
+        "scholarships_offered": [
+            "UP Oblation Scholarship",
+            "STFAP",
+            "Research Grants"
+        ],
+        "maps_query": "University of the Philippines, Clark Pampanga",
+        "coords": {
+            "lat": 15.192753,
+            "lng": 120.580748
+        }
+    },
+    "City College of San Fernando, Pampanga": {
+        "logo": "ccsfp.png",
+        "address": "San Fernando, Pampanga, Philippines",
+        "what_theyre_known_for": "Committed to local teacher education and public service, known for producing competent educators and achieving strong licensure exam performance.",
+        "institutional_strengths": [
+            "Education",
+            "Business Administration",
+            "Community Development"
+        ],
+        "unirank": {
+            "central_luzon_rank": null
+        },
+        "dorm_apartment": "No on-campus housing; affordable boarding nearby.",
+        "transport_access": "Within city proper; accessible via jeepneys and tricycles.",
+        "scholarships_offered": [
+            "Local Gov’t Assistance",
+            "TES Program"
+        ],
+        "maps_query": "City College of San Fernando Pampanga",
+        "coords": {
+            "lat": 15.035714,
+            "lng": 120.683953
+        }
+    },
+    "City College of Angeles": {
+        "logo": "cca.png",
+        "address": "Angeles City, Pampanga, Philippines",
+        "what_theyre_known_for": "Focused on vocational and community programs for local employment and skill development.",
+        "institutional_strengths": [
+            "Community Education",
+            "Vocational Programs",
+            "Business & Management",
+            "Medical & Health Sciences (Epidemiology and Public Health)"
+        ],
+        "unirank": {
+            "central_luzon_rank": null
+        },
+        "dorm_apartment": "Nearby dorms and apartments available.",
+        "transport_access": "Easily accessible via Angeles City jeep routes.",
+        "scholarships_offered": [
+            "TES Program",
+            "LGU Vouchers"
+        ],
+        "maps_query": "City College of Angeles",
+        "coords": {
+            "lat": 15.145374,
+            "lng": 120.589881
+        }
+    },
+    "Mabalacat City College": {
+        "logo": "mcc.png",
+        "address": "Mabalacat, Pampanga, Philippines",
+        "what_theyre_known_for": "A local college providing vocational and technical training for community development and local employment.",
+        "institutional_strengths": [
+            "Local Skills Training",
+            "Community Development",
+            "History, Philosophy, Theology",
+            "Education (Physical Education and Sport Science)"
+        ],
+        "unirank": {
+            "central_luzon_rank": null
+        },
+        "dorm_apartment": "No official dorms; rental apartments nearby.",
+        "transport_access": "Along MacArthur Highway; accessible via buses and jeepneys.",
+        "scholarships_offered": [
+            "TES Grants",
+            "Local Education Assistance"
+        ],
+        "maps_query": "Mabalacat City College",
+        "coords": {
+            "lat": 15.180751,
+            "lng": 120.54894
+        }
+    },
+    "Holy Angel University": {
+        "logo": "hau.png",
+        "address": "Angeles City, Pampanga, Philippines",
+        "what_theyre_known_for": "One of the largest and most reputable Catholic universities in Central Luzon, known for its accessible and transformative education across various disciplines.",
+        "institutional_strengths": [
+            "Business and Accountancy",
+            "Information Technology",
+            "Engineering",
+            "Architecture",
+            "Arts and Sciences",
+            "Education",
+            "Hospitality and Tourism Management",
+            "Nursing",
+            "Allied Medical Sciences",
+            "Criminal Justice Education and Forensics"
+        ],
+        "unirank": {
+            "central_luzon_rank": 76
+        },
+        "dorm_apartment": "Multiple private dorms and apartments around the campus.",
+        "transport_access": "Downtown Angeles City; accessible via public and private transport.",
+        "scholarships_offered": [
+            "Entrance Scholarships",
+            "Financial Aid",
+            "Academic Honors"
+        ],
+        "maps_query": "Holy Angel University, Angeles City",
+        "coords": {
+            "lat": 15.145066,
+            "lng": 120.590374
+        }
+    },
+    "AMA Computer College – Angeles City": {
+        "logo": "ama.png",
+        "address": "Angeles City, Pampanga, Philippines",
+        "what_theyre_known_for": "A pioneer in IT education in the Philippines, known for integrating AI across all programs and offering global certifications.",
+        "institutional_strengths": [
+            "Information Technology",
+            "E-Learning",
+            "Artificial Intelligence",
+            "Data Science",
+            "Cybersecurity",
+            "Blockchain"
+        ],
+        "unirank": {
+            "central_luzon_rank": null
+        },
+        "dorm_apartment": "Nearby apartments and boarding houses available.",
+        "transport_access": "Near main roads; accessible by jeepneys, trikes, and buses.",
+        "scholarships_offered": [
+            "Academic Scholarships",
+            "Tech Vouchers"
+        ],
+        "maps_query": "AMA Computer College Angeles City",
+        "coords": {
+            "lat": 15.146151,
+            "lng": 120.597275
+        }
+    },
+    "AMA Computer College – San Fernando": {
+        "logo": "ama.png",
+        "address": "OYG Building, B. Mendoza Street, San Fernando City, Pampanga, Philippines",
+        "what_theyre_known_for": "Computer and IT education with a focus on practical skills and industry-relevant programs.",
+        "institutional_strengths": [
+            "Information Technology",
+            "Computer Science",
+            "Computer Engineering",
+            "AI Integration in Curriculum"
+        ],
+        "unirank": {
+            "central_luzon_rank": null
+        },
+        "dorm_apartment": "No on-campus dormitories; numerous private rental apartments and boarding houses are available in San Fernando City.",
+        "transport_access": "Centrally located in San Fernando City; easily accessible by jeepneys, tricycles, and buses operating along major city routes.",
+        "scholarships_offered": [
+            "CHED UniFAST - Tertiary Education Subsidy (TES)",
+            "Internal academic scholarships (e.g., for honors students)",
+            "Partnership-based scholarships (e.g., industry tie-ups)"
+        ],
+        "maps_query": "AMA Computer College San Fernando Pampanga",
+        "coords": {
+            "lat": 15.0298,
+            "lng": 120.6869
+        }
+    },
+    "Angeles University Foundation": {
+        "logo": "auf.png",
+        "address": "Angeles City, Pampanga, Philippines",
+        "what_theyre_known_for": "An autonomous Catholic university in Central Luzon, known for its CHED-recognized Centers of Development and growing regional research reputation.",
+        "institutional_strengths": [
+            "Medical and Allied Health Sciences",
+            "Nursing",
+            "Business and Accountancy",
+            "Education",
+            "Research",
+            "Faculty Quality"
+        ],
+        "unirank": {
+            "central_luzon_rank": 71
+        },
+        "dorm_apartment": "On-campus and off-campus accommodations available.",
+        "transport_access": "Along MacArthur Highway; jeep and bus accessible.",
+        "scholarships_offered": [
+            "AUF Scholarships",
+            "CHED Grants",
+            "Entrance Awards"
+        ],
+        "maps_query": "Angeles University Foundation",
+        "coords": {
+            "lat": 15.125144,
+            "lng": 120.590248
+        }
+    },
+    "University of the Assumption": {
+        "logo": "ua.png",
+        "address": "San Fernando, Pampanga, Philippines",
+        "what_theyre_known_for": "A private Catholic archdiocesan university recognized for its strong programs in liberal arts, engineering, and leadership, and deeply rooted in community service.",
+        "institutional_strengths": [
+            "Liberal Arts",
+            "Community Service",
+            "Architecture",
+            "Engineering",
+            "Business",
+            "Teacher Education"
+        ],
+        "unirank": {
+            "central_luzon_rank": null
+        },
+        "dorm_apartment": "Nearby apartments and housing for students.",
+        "transport_access": "Easily accessible within San Fernando downtown area.",
+        "scholarships_offered": [
+            "UA Institutional Scholarships",
+            "Catholic Foundation Grants"
+        ],
+        "maps_query": "University of the Assumption, San Fernando Pampanga",
+        "coords": {
+            "lat": 15.034181,
+            "lng": 120.676632
+        }
+    },
+    "Our Lady Of Fatima University": {
+        "logo": "fatima.png",
+        "address": "Angeles City, Pampanga, Philippines",
+        "what_theyre_known_for": "Strong in Medical and Paramedical programs with high licensure rates, offering accessible education; part of the OLFU system known for innovation and accreditation.",
+        "institutional_strengths": [
+            "Medical & Paramedical Programs",
+            "Nursing",
+            "Dentistry",
+            "Physical Therapy",
+            "Pharmacy",
+            "Hotel and Restaurant Management"
+        ],
+        "unirank": {
+            "central_luzon_rank": 10
+        },
+        "dorm_apartment": "Nearby dormitories and private housing options.",
+        "transport_access": "Near Nepo Center; accessible via jeepneys and shuttles.",
+        "scholarships_offered": [
+            "Medical Scholarships",
+            "Nursing Grants",
+            "Fatima Entrance Award"
+        ],
+        "maps_query": "Our Lady of Fatima University Angeles City",
+        "coords": {
+            "lat": 15.130202,
+            "lng": 120.582461
+        }
+    },
+    "CELTECH": {
+        "logo": "celtech.png",
+        "address": "San Fernando City, Pampanga, Philippines",
+        "what_theyre_known_for": "A vocational and technical institution with roots dating back to 1959, offering programs such as BS in Marine Transportation, known for excellent pass rates in MARINA board exams and TESDA trade tests.",
+        "institutional_strengths": [
+            "Marine Transportation",
+            "Technical-Vocational Education",
+            "Board Exam Success"
+        ],
+        "unirank": {
+            "central_luzon_rank": null
+        },
+        "dorm_apartment": "Nearby low-cost boarding houses and dormitories available.",
+        "transport_access": "Accessible via jeepney and bus routes in San Fernando; located near major transport terminals.",
+        "scholarships_offered": [
+            "TESDA Scholarships",
+            "Technical Vouchers",
+            "Local Government Subsidies"
+        ],
+        "maps_query": "Central Luzon College of Science and Technology San Fernando",
+        "coords": {
+            "lat": 15.0333,
+            "lng": 120.6833
+        }
+    }
+}
