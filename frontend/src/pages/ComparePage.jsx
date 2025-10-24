@@ -92,7 +92,7 @@ export default function ComparePage() {
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat text-white font-Poppins pt-32 px-4 pb-24"
       style={{
-        backgroundImage: "url('/images/6.jpg')",
+        backgroundImage: "url('/images/main.jpg')",
       }}
     >
       {/* Navbar */}

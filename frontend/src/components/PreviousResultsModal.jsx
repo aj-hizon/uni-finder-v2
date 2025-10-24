@@ -27,7 +27,6 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
         if (!res.ok) throw new Error("Failed to fetch previous results");
         const data = await res.json();
 
-        // ✅ Handle cases where data might be an object or array
         const userResults = Array.isArray(data)
           ? data
           : Array.isArray(data.results)
@@ -46,23 +45,54 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
     fetchPreviousResults();
   }, [isOpen]);
 
+  // 🏫 Local logo mapping (from /public/logos/)
+  const schoolImages = {
+    "Holy Angel University": "/logos/hau.png",
+    CELTECH: "/logos/celtech.png",
+    "Our Lady Of Fatima University": "/logos/fatima.png",
+    "University of the Assumption": "/logos/ua.png",
+    "Angeles University Foundation": "/logos/auf.png",
+    "AMA Computer College San Fernando Pampanga": "/logos/ama.png",
+    "AMA Computer College – Angeles City": "/logos/ama.png",
+    "Mabalacat City College": "/logos/mcc.png",
+    "City College of Angeles": "/logos/cca.png",
+    "City College of San Fernando, Pampanga": "/logos/ccsf.png",
+    "Bulacan State University": "/logos/bulsu.png",
+    "UPEP PAMPANGA": "/logos/UP.png",
+    "Pampanga State Agricultural University": "/logos/psau.png",
+    "Pampanga State University": "/logos/psu.png",
+    "Pampanga State University - Santo Tomas Campus": "/logos/psu.png",
+    "Pampanga State University - Porac Campus": "/logos/psu.png",
+    "Pampanga State University - Mexico Campus": "/logos/psu.png",
+    "Pampanga State University - Lubao Campus": "/logos/psu.png",
+    "Pampanga State University - Candaba Campus": "/logos/psu.png",
+    "Pampanga State University - Apalit Campus": "/logos/psu.png",
+  };
+
+  const getTuitionDisplay = (tuition) => {
+    if (!tuition || tuition === "N/A" || tuition === "n/a") return "Free";
+    return tuition;
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed top-0 left-0 w-screen h-screen z-[9999] flex justify-center items-start bg-black/60 backdrop-blur-sm overflow-y-auto py-10 px-4">
-      <div className="relative bg-[#0a1733]/90 backdrop-blur-2xl border border-blue-400/20 rounded-2xl w-full max-w-6xl p-6 text-white">
+    <div className="fixed inset-0 z-[9999] flex justify-center items-start bg-black/60 backdrop-blur-sm overflow-y-auto py-10 px-4 font-poppins">
+      <div className="relative bg-[#0a1733]/90 backdrop-blur-2xl border border-blue-400/20 rounded-2xl w-full max-w-6xl p-6 text-white shadow-2xl font-poppins">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-white/80 hover:text-red-400 transition"
+          className="absolute top-4 right-4 text-white/70 hover:text-red-400 transition"
         >
           <X size={24} />
         </button>
 
-        <h2 className="text-3xl font-bold mb-6 text-center">Previous Results</h2>
+        <h2 className="text-3xl font-bold mb-6 text-center font-poppins">
+          Previous Results
+        </h2>
 
         {/* Clear Results Button */}
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-4 font-poppins">
           <button
             className="flex items-center gap-2 px-4 py-2 bg-red-600/70 hover:bg-red-500 rounded-lg text-white font-semibold text-sm"
             onClick={() => alert("Clear results feature coming soon!")}
@@ -73,72 +103,120 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
 
         {/* Loading / Error / Empty states */}
         {loading ? (
-          <p className="text-center text-white/70">Loading previous results...</p>
+          <p className="text-center text-white/70 font-poppins">
+            Loading previous results...
+          </p>
         ) : error ? (
-          <p className="text-center text-red-400">{error}</p>
+          <p className="text-center text-red-400 font-poppins">{error}</p>
         ) : results.length === 0 ? (
-          <p className="text-center text-white/70">No previous results found.</p>
+          <p className="text-center text-white/70 font-poppins">
+            No previous results found.
+          </p>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-8 font-poppins">
             {results.map((resItem, index) => (
               <div
                 key={resItem._id || index}
-                className="bg-blue-900/20 p-4 rounded-xl border border-blue-400/30"
+                className="bg-blue-900/20 p-5 rounded-xl border border-blue-400/30 font-poppins"
               >
-                <h3 className="text-xl font-semibold mb-2">Result #{index + 1}</h3>
+                <h3 className="text-xl font-semibold mb-4 text-blue-300 font-poppins">
+                  Result #{index + 1}
+                </h3>
 
                 {/* User Answers */}
-                <div className="mb-4">
-                  <h4 className="font-semibold mb-1">User Answers:</h4>
-                  <ul className="list-disc list-inside text-sm xs:text-base">
+                <div className="mb-5 font-poppins">
+                  <h4 className="font-semibold mb-2 text-blue-200 font-poppins">
+                    Your Previous Answer
+                  </h4>
+                  <div className="bg-blue-950/30 p-4 rounded-lg border border-blue-400/10 text-sm space-y-1 leading-relaxed font-poppins">
                     {Object.entries(resItem.answers || {}).map(([key, value]) => (
-                      <li key={key}>
-                        <strong>{key}:</strong>{" "}
-                        {Array.isArray(value)
-                          ? value.join(", ")
-                          : typeof value === "object"
-                          ? JSON.stringify(value)
-                          : value?.toString()}
-                      </li>
+                      <div key={key} className="flex gap-1">
+                        <span className="font-medium capitalize text-blue-100">
+                          {key}:
+                        </span>
+                        <span className="text-white/80">
+                          {Array.isArray(value)
+                            ? value.join(", ")
+                            : typeof value === "object"
+                            ? JSON.stringify(value)
+                            : value?.toString()}
+                        </span>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
 
                 {/* Recommendations */}
-                <div>
-                  <h4 className="font-semibold mb-2">Recommended Programs:</h4>
+                <div className="font-poppins">
+                  <h4 className="font-semibold mb-3 text-blue-200 font-poppins">
+                    Recommended Programs
+                  </h4>
                   {resItem.results && resItem.results.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-sm xs:text-base">
-                        <thead>
-                          <tr className="border-b border-blue-400/50">
-                            <th className="py-2 px-3">School</th>
-                            <th className="py-2 px-3">Program</th>
-                            <th className="py-2 px-3">Score</th>
-                            <th className="py-2 px-3">Tuition</th>
+                    <div className="overflow-x-auto rounded-lg border border-blue-400/20 font-poppins">
+                      <table className="w-full text-left border-collapse text-sm font-poppins">
+                        <thead className="bg-blue-950/40 border-b border-blue-400/30 font-semibold text-white">
+                          <tr>
+                            <th className="py-2 px-3">Logo</th>
+                            <th className="py-2 px-3">School Name</th>
                             <th className="py-2 px-3">Location</th>
+                            <th className="py-2 px-3">School Type</th>
+                            <th className="py-2 px-3">Tuition Fee</th>
+                            <th className="py-2 px-3">Board Passing Rate</th>
                           </tr>
                         </thead>
                         <tbody>
                           {resItem.results.map((r, i) => (
                             <tr
                               key={i}
-                              className={`border-b border-blue-400/30 ${
-                                i % 2 === 0 ? "bg-blue-900/20" : "bg-blue-900/10"
+                              className={`border-b border-blue-400/10 hover:bg-blue-950/20 transition font-medium ${
+                                i % 2 === 0 ? "bg-blue-900/10" : "bg-blue-900/5"
                               }`}
                             >
-                              <td className="py-2 px-3">{r.school || "-"}</td>
-                              <td className="py-2 px-3">{r.program || "-"}</td>
-                              <td className="py-2 px-3">{r.score || "-"}</td>
-                              <td className="py-2 px-3">{r.tuition_per_semester || "-"}</td>
+                              {/* Logo */}
+                              <td className="py-2 px-3">
+                                <div className="flex items-center justify-center bg-white p-1 rounded-md w-14 h-14 border border-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                                  <img
+                                    src={
+                                      schoolImages[r.school] ||
+                                      "https://via.placeholder.com/80x60?text=School"
+                                    }
+                                    alt={r.school || "School"}
+                                    className="w-12 h-12 object-contain rounded"
+                                  />
+                                </div>
+                              </td>
+
+                              {/* School Name */}
+                              <td className="py-2 px-3 font-semibold text-blue-100">
+                                {r.school || "-"}
+                              </td>
+
+                              {/* Location */}
                               <td className="py-2 px-3">{r.location || "-"}</td>
+
+                              {/* School Type */}
+                              <td className="py-2 px-3 capitalize">
+                                {r.school_type || "-"}
+                              </td>
+
+                              {/* Tuition Fee */}
+                              <td className="py-2 px-3 font-semibold text-blue-200">
+                                {getTuitionDisplay(r.tuition_per_semester)}
+                              </td>
+
+                              {/* Board Passing Rate */}
+                              <td className="py-2 px-3">
+                                {r.board_passing_rate || "-"}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                   ) : (
-                    <p className="text-white/70">No recommendations found for this result.</p>
+                    <p className="text-white/70 font-poppins">
+                      No recommendations found for this result.
+                    </p>
                   )}
                 </div>
               </div>

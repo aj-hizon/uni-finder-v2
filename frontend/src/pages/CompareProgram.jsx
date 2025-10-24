@@ -197,7 +197,7 @@ export default function CompareProgram() {
   return (
     <div
       className="compare-program min-h-screen bg-cover bg-center bg-no-repeat text-white pt-24 px-4 sm:px-8 pb-28"
-      style={{ backgroundImage: "url('/images/6.jpg')" }}
+      style={{ backgroundImage: "url('/images/main.jpg')" }}
     >
       <Navbar />
 

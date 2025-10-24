@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { X, GraduationCap, Eye, EyeOff } from "lucide-react";
+import { X, Eye, EyeOff } from "lucide-react";
+import PopupMessage from "./PopupMessage";
 
 export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
   const [isLogin, setIsLogin] = useState(defaultIsLogin);
@@ -8,19 +9,35 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [popup, setPopup] = useState(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setIsLogin(defaultIsLogin);
+    setEmail("");
+    setPassword("");
+    setFullName("");
+  }, [defaultIsLogin]);
+
+  if (!isOpen) return (
+    <>
+      {/* Render popup even if modal is closed */}
+      {popup && (
+        <PopupMessage
+          type={popup.type}
+          message={popup.message}
+          onClose={() => setPopup(null)}
+        />
+      )}
+    </>
+  );
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
 
     try {
       if (isLogin) {
-        // 🔹 LOGIN
         const res = await axios.post("http://127.0.0.1:8000/login", {
           email,
           password,
@@ -30,148 +47,143 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
         localStorage.setItem("token", access_token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        setMessage("Login successful!");
-        onClose();
+        // ✅ Set popup before closing modal
+        setPopup({ type: "success", message: "Login successful!" });
+        setTimeout(onClose, 300); // small delay so popup shows cleanly
       } else {
-        // 🔹 REGISTER
         await axios.post("http://127.0.0.1:8000/register", {
           email,
           password,
           full_name: fullName,
         });
-        setMessage("✅ Registration successful! You can now log in.");
+        setPopup({
+          type: "success",
+          message: "Registration successful! You can now log in.",
+        });
       }
     } catch (err) {
       console.error(err);
-      setMessage(err.response?.data?.detail || "Something went wrong.");
+      setPopup({
+        type: "error",
+        message: err.response?.data?.detail || "Something went wrong.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center 
-                 min-h-screen backdrop-blur-lg bg-black/40 font-[Poppins] px-4"
-      onClick={onClose} // close on background click
-    >
+    <>
       <div
-        className="relative w-full max-w-lg rounded-3xl shadow-2xl 
-                   bg-blue-900/60 backdrop-blur-2xl border border-blue-400/20 
-                   text-white p-10 flex flex-col items-center"
-        onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+        className="fixed inset-0 z-[9999] flex items-center justify-center 
+                   min-h-screen bg-black/80 backdrop-blur-sm font-[Poppins] px-4"
+        onClick={onClose}
       >
-        {/* ❌ Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-red-500 hover:text-red-600 transition"
+        <div
+          className="relative w-full max-w-lg rounded-3xl shadow-2xl 
+                      bg-blue-800/40 backdrop-blur-md
+                      text-white p-10 flex flex-col items-center font-[Poppins]"
+          onClick={(e) => e.stopPropagation()}
         >
-          <X size={24} />
-        </button>
-
-        {/* 🎓 UniFinder Logo */}
-        <div className="flex items-center gap-2 mb-6">
-          <GraduationCap size={32} className="text-white" />
-          <h1 className="text-2xl font-semibold leading-none">Uni-Finder</h1>
-        </div>
-
-        {/* 🔹 Title */}
-        <h2 className="text-lg font-medium mb-6">
-          {isLogin ? "Welcome Back" : "Create an Account"}
-        </h2>
-
-        {/* 🧾 Form */}
-        <form onSubmit={handleAuth} className="w-full space-y-4">
-          {!isLogin && (
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 
-                         focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
-          )}
-
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 
-                       focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
-
-          {/* 👁 Password Input with Toggle */}
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 
-                         focus:outline-none focus:ring-2 focus:ring-blue-400 pr-10"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white"
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-lg font-medium bg-blue-600 hover:bg-blue-700 
-                       transition-all shadow-md shadow-blue-900/40"
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"
           >
-            {loading ? "Processing..." : isLogin ? "Login" : "Register"}
+            <X size={24} />
           </button>
-        </form>
 
-        {/* 🔹 Message */}
-        {message && (
-          <p className="text-center text-sm mt-3 text-blue-300">{message}</p>
-        )}
+          <h1 className="text-base font-semibold leading-tight mb-4 tracking-wide text-blue-200">
+            {isLogin ? "Login" : "Register"}
+          </h1>
 
-        {/* 🔹 Toggle Login/Register */}
-        <div className="text-center mt-5 text-sm text-gray-300">
-          {isLogin ? (
-            <p>
-              Don’t have an account?{" "}
+          <form onSubmit={handleAuth} className="w-full space-y-4">
+            {!isLogin && (
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 
+                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            )}
+
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 
+                         focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                required
+              />
               <button
                 type="button"
-                onClick={() => {
-                  setIsLogin(false);
-                  setMessage("");
-                }}
-                className="text-blue-400 hover:underline"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white"
               >
-                Register
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
-            </p>
-          ) : (
-            <p>
-              Already have an account?{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(true);
-                  setMessage("");
-                }}
-                className="text-blue-400 hover:underline"
-              >
-                Login
-              </button>
-            </p>
-          )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-lg font-medium bg-blue-700 hover:bg-blue-800 
+                         transition-all shadow-md shadow-blue-900/40"
+            >
+              {loading ? "Processing..." : isLogin ? "Login" : "Register"}
+            </button>
+          </form>
+
+          <div className="text-center mt-6 text-sm text-gray-300">
+            {isLogin ? (
+              <p>
+                Don’t have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(false)}
+                  className="text-blue-400 hover:underline"
+                >
+                  Register
+                </button>
+              </p>
+            ) : (
+              <p>
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(true)}
+                  className="text-blue-400 hover:underline"
+                >
+                  Login
+                </button>
+              </p>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* ✅ Render popup always (so it stays visible even if modal closes) */}
+      {popup && (
+        <PopupMessage
+          type={popup.type}
+          message={popup.message}
+          onClose={() => setPopup(null)}
+        />
+      )}
+    </>
   );
 }

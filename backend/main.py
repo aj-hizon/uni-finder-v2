@@ -170,17 +170,7 @@ async def get_school_strengths():
     except Exception as e:
         print(f"❌ Error fetching school_strengths: {e}")
         raise HTTPException(status_code=500, detail=f"Database error while fetching school strengths: {e}")
-    
-@app.get("/api/school-strengths", summary="Get all school strengths")
-async def get_school_strengths():
-    try:
-        collection = db["school_strengths"]
-        # Return all documents without _id (to make JSON cleaner)
-        docs = list(collection.find({}, {"_id": 0}))
-        return JSONResponse(content={"schools": docs})
-    except Exception as e:
-        print(f"❌ Error fetching school strengths: {e}")
-        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+
 
 
 

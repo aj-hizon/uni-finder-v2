@@ -45,7 +45,7 @@ function Home() {
         ref={scrollContainerRef}
         className="h-screen overflow-y-scroll bg-cover bg-center bg-no-repeat text-white font-Poppins"
         style={{
-          backgroundImage: "url('/images/6.jpg')", // 👈 Replace with your image path
+          backgroundImage: "url('/images/main.jpg')", 
         }}
       >
         {/* Hero Section */}

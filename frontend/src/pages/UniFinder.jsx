@@ -199,7 +199,7 @@ const ProgressBar = () => {
     <div
   className="min-h-screen bg-cover bg-center bg-no-repeat px-4 text-white pt-16 sm:pt-20 lg:pt-36"
   style={{
-    backgroundImage: "url('/images/6.jpg')",
+    backgroundImage: "url('/images/main.jpg')",
   }}
 >
 
@@ -230,22 +230,23 @@ const ProgressBar = () => {
                      rounded-2xl sm:rounded-3xl 
                      border border-white/20 shadow-lg space-y-6 sm:space-y-8"
         >
-          {/* Title and Subtitle */}
-          <div className="flex flex-col gap-2 sm:gap-3">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-blue-300/20 p-2 sm:p-3 rounded-md">
-                <Heart className="text-blue-300 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
-              </div>
-              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold font-inter">
-                {q.title}
-              </h2>
-            </div>
+          {/* question title and instructions */}
+         <div className="flex flex-col gap-1.5 sm:gap-2">
+  <div className="flex items-center gap-2 sm:gap-3">
+    <div className="bg-blue-300/20 p-2.5 sm:p-3 rounded-md">
+      <Heart className="text-blue-300 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+    </div>
+    <h2 className="text-lg sm:text-xl md:text-2xl font-semibold font-inter text-white">
+      {q.title}
+    </h2>
+  </div>
 
-            {/* Subtitle / Instructions */}
-            <p className="text-white font-poppins text-sm sm:text-base md:text-lg opacity-80 text-left">
-              Choose up to 2 that best describe your interests, or type your own answers freely if none of the choices fit.
-            </p>
-          </div>
+  <p className="text-white/70 font-poppins text-sm sm:text-base leading-relaxed ml-1 sm:ml-2">
+    Choose up to <span className="font-semibold text-blue-300">2</span> that best describe your interests,
+    or type your own answers freely if none of the choices fit.
+  </p>
+</div>
+
 
           {/* Choices */}
           <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">

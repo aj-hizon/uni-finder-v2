@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,11 +13,12 @@ import {
   FileText,
   LogOut,
   Trash2,
+  X,
 } from "lucide-react";
 
 import AuthModal from "./AuthModal";
 import HistoryLogModal from "./HistoryLogModal";
-import PreviousResultsModal from "./PreviousResultsModal"; // <-- import
+import PreviousResultsModal from "./PreviousResultsModal";
 
 function Navbar() {
   const location = useLocation();
@@ -24,7 +26,14 @@ function Navbar() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState(true);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [showPreviousResultsModal, setShowPreviousResultsModal] = useState(false); // new
+  const [showPreviousResultsModal, setShowPreviousResultsModal] = useState(false);
+
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const [popupMessage, setPopupMessage] = useState("");
+  const [popupVisible, setPopupVisible] = useState(false);
+
   const isLoggedIn = !!localStorage.getItem("token");
   const dropdownRef = useRef(null);
 
@@ -38,6 +47,49 @@ function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // 🔹 Popup
+  const showPopup = (msg) => {
+    setPopupMessage(msg);
+    setPopupVisible(true);
+    setTimeout(() => setPopupVisible(false), 2500);
+  };
+
+  // 🔹 Logout
+  const handleLogout = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      await fetch("http://localhost:8000/logout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      localStorage.clear();
+      setShowLogoutConfirm(false);
+      showPopup("Logged out successfully!");
+      setTimeout(() => window.location.reload(), 2000);
+    } catch {
+      showPopup("Logout failed.");
+    }
+  };
+
+  // 🔹 Delete Account
+  const handleDeleteAccount = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      await fetch("http://localhost:8000/delete-account", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      localStorage.clear();
+      setShowDeleteConfirm(false);
+      showPopup("Account deleted successfully!");
+      setTimeout(() => window.location.reload(), 2000);
+    } catch {
+      showPopup("Failed to delete account.");
+    }
+  };
+
   const links = [
     { to: "/", icon: Home, text: "Home" },
     { to: "/unifinder", icon: Search, text: "Find Programs" },
@@ -45,12 +97,33 @@ function Navbar() {
 
   return (
     <>
+      {/* 🔹 Top-center popup (glass effect, no emoji) */}
+      {createPortal(
+        <AnimatePresence>
+          {popupVisible && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="fixed top-6 left-1/2 transform -translate-x-1/2 z-[9999]
+                bg-blue-500/20 backdrop-blur-md border border-blue-400/30
+                text-white px-6 py-3 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.3)]
+                font-medium"
+            >
+              {popupMessage}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* 🔹 Navbar */}
       <div className="w-full flex justify-center absolute top-3 xs:top-4 sm:top-5 md:top-6 left-0 z-50">
         <nav className="flex items-center justify-between w-[95%] xs:w-[90%] sm:w-[85%] md:w-[80%] lg:w-[70%] xl:w-[60%] px-3 sm:px-5 py-2 sm:py-3 rounded-full bg-[#003C8F]/90 backdrop-blur-md shadow-lg text-white">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 text-white">
             <GraduationCap className="w-6 xs:w-7 h-6 xs:h-7 text-white drop-shadow-lg" />
-            <span className="text-sm xs:text-base sm:text-lg md:text-2xl font-bold text-white tracking-wide leading-tight whitespace-nowrap">
+            <span className="text-sm xs:text-base sm:text-lg md:text-2xl font-bold text-white tracking-wide">
               Uni-Finder
             </span>
           </Link>
@@ -60,9 +133,23 @@ function Navbar() {
             {links.map(({ to, icon: Icon, text }) => {
               const isActive = location.pathname === to;
               return (
-                <motion.div key={to} className="relative flex flex-col items-center" whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.05 }}>
-                  {isActive && <motion.div layoutId="tracker" className="absolute inset-0 rounded-full bg-blue-500/40" transition={{ type: "spring", stiffness: 300, damping: 25 }} />}
-                  <Link to={to} className="relative flex items-center sm:space-x-2 px-2 sm:px-3 py-1 text-xs xs:text-sm sm:text-base md:text-lg font-semibold text-white hover:text-white z-10">
+                <motion.div
+                  key={to}
+                  className="relative flex flex-col items-center"
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="tracker"
+                      className="absolute inset-0 rounded-full bg-blue-500/40"
+                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    />
+                  )}
+                  <Link
+                    to={to}
+                    className="relative flex items-center sm:space-x-2 px-2 sm:px-3 py-1 text-xs xs:text-sm sm:text-base md:text-lg font-semibold text-white z-10"
+                  >
                     <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     <span className="hidden sm:inline text-white">{text}</span>
                   </Link>
@@ -72,39 +159,86 @@ function Navbar() {
 
             {/* Account Dropdown */}
             <div className="relative" ref={dropdownRef}>
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowAccountMenu((prev) => !prev)} className="flex items-center space-x-2 text-white px-2 sm:px-3 py-1 rounded-full font-semibold text-sm sm:text-base">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowAccountMenu((prev) => !prev)}
+                className="flex items-center space-x-2 text-white px-2 sm:px-3 py-1 rounded-full font-semibold text-sm sm:text-base"
+              >
                 <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </motion.button>
 
               <AnimatePresence>
                 {showAccountMenu && (
-                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 12 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }} className="absolute right-0 mt-4 w-60 rounded-2xl shadow-lg border border-blue-800/40 overflow-hidden z-50 bg-[#003C8F]/70 backdrop-blur-xl">
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 12 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.25 }}
+                    className="absolute right-0 mt-4 w-60 rounded-2xl shadow-lg border border-blue-800/40 overflow-hidden z-50 bg-[#003C8F]/70 backdrop-blur-xl"
+                  >
                     {!isLoggedIn ? (
                       <>
-                        <button className="flex items-center gap-3 w-full text-left px-5 py-3 text-white hover:bg-blue-800/60" onClick={() => { setAuthMode(true); setShowAuthModal(true); setShowAccountMenu(false); }}>
-                          <LogIn className="w-5 h-5 text-white" /> Login
+                        <button
+                          className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-blue-800/60"
+                          onClick={() => {
+                            setAuthMode(true);
+                            setShowAuthModal(true);
+                            setShowAccountMenu(false);
+                          }}
+                        >
+                          <LogIn className="w-5 h-5" /> Login
                         </button>
-                        <button className="flex items-center gap-3 w-full text-left px-5 py-3 text-white hover:bg-blue-800/60" onClick={() => { setAuthMode(false); setShowAuthModal(true); setShowAccountMenu(false); }}>
-                          <UserPlus className="w-5 h-5 text-white" /> Register
+                        <button
+                          className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-blue-800/60"
+                          onClick={() => {
+                            setAuthMode(false);
+                            setShowAuthModal(true);
+                            setShowAccountMenu(false);
+                          }}
+                        >
+                          <UserPlus className="w-5 h-5" /> Register
                         </button>
                       </>
                     ) : (
                       <>
-                        <button className="flex items-center gap-3 w-full text-left px-5 py-3 text-white hover:bg-blue-800/60" onClick={() => { setShowHistoryModal(true); setShowAccountMenu(false); }}>
-                          <History className="w-5 h-5 text-white" /> History Log
+                        <button
+                          className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-blue-800/60"
+                          onClick={() => {
+                            setShowHistoryModal(true);
+                            setShowAccountMenu(false);
+                          }}
+                        >
+                          <History className="w-5 h-5" /> History Log
                         </button>
 
-                        {/* PREVIOUS RESULTS */}
-                        <button className="flex items-center gap-3 w-full text-left px-5 py-3 text-white hover:bg-blue-800/60" onClick={() => { setShowPreviousResultsModal(true); setShowAccountMenu(false); }}>
-                          <FileText className="w-5 h-5 text-white" /> View Previous Results
+                        <button
+                          className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-blue-800/60"
+                          onClick={() => {
+                            setShowPreviousResultsModal(true);
+                            setShowAccountMenu(false);
+                          }}
+                        >
+                          <FileText className="w-5 h-5" /> View Previous Results
                         </button>
 
-                        <button className="flex items-center gap-3 w-full text-left px-5 py-3 text-white hover:bg-blue-800/60" onClick={async () => { const token = localStorage.getItem("token"); if (!token) return; try { await fetch("http://localhost:8000/logout", { method: "POST", headers: { Authorization: `Bearer ${token}` } }); localStorage.clear(); setShowAccountMenu(false); window.location.reload(); alert("Logged out successfully!"); } catch { alert("Logout failed"); } }}>
-                          <LogOut className="w-5 h-5 text-white" /> Logout
+                        <button
+                          className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-blue-800/60"
+                          onClick={() => {
+                            setShowLogoutConfirm(true);
+                            setShowAccountMenu(false);
+                          }}
+                        >
+                          <LogOut className="w-5 h-5" /> Logout
                         </button>
 
-                        <button className="flex items-center gap-3 w-full text-left px-5 py-3 text-white hover:bg-red-600/70" onClick={async () => { const confirmDelete = window.confirm("Are you sure you want to delete your account?"); if (!confirmDelete) return; const token = localStorage.getItem("token"); if (!token) return; try { await fetch("http://localhost:8000/delete-account", { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }); localStorage.clear(); setShowAccountMenu(false); window.location.reload(); alert("Account deleted successfully!"); } catch { alert("Failed to delete account."); } }}>
-                          <Trash2 className="w-5 h-5 text-white" /> Delete Account
+                        <button
+                          className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-red-600/70"
+                          onClick={() => {
+                            setShowDeleteConfirm(true);
+                            setShowAccountMenu(false);
+                          }}
+                        >
+                          <Trash2 className="w-5 h-5" /> Delete Account
                         </button>
                       </>
                     )}
@@ -116,9 +250,80 @@ function Navbar() {
         </nav>
       </div>
 
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultIsLogin={authMode} />
-      <HistoryLogModal isOpen={showHistoryModal} onClose={() => setShowHistoryModal(false)} />
-      <PreviousResultsModal isOpen={showPreviousResultsModal} onClose={() => setShowPreviousResultsModal(false)} /> {/* new */}
+      {/* 🔹 Confirmation Modals via Portal (glass + red/blue buttons + poppins font) */}
+      {createPortal(
+        <AnimatePresence>
+          {(showLogoutConfirm || showDeleteConfirm) && (
+            <motion.div
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-[9998]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                className="relative bg-blue-800/40 backdrop-blur-lg border border-blue-400/40 text-white p-8 rounded-3xl shadow-2xl text-center w-[90%] max-w-sm"
+              >
+                <button
+                  onClick={() => {
+                    setShowLogoutConfirm(false);
+                    setShowDeleteConfirm(false);
+                  }}
+                  className="absolute top-4 right-4 text-gray-300 hover:text-white"
+                >
+                  <X size={22} />
+                </button>
+                <h2 className="text-lg font-semibold mb-4 font-poppins">
+                  {showLogoutConfirm
+                    ? "Are you sure you want to logout?"
+                    : "Are you sure you want to delete your account?"}
+                </h2>
+                <div className="flex justify-center gap-4 mt-6">
+                  <button
+                    onClick={() => {
+                      showLogoutConfirm ? handleLogout() : handleDeleteAccount();
+                    }}
+                    className={`px-5 py-2 rounded-lg font-medium backdrop-blur-md border transition ${
+                      showLogoutConfirm
+                        ? "bg-red-600/30 border-red-500/40 hover:bg-red-600/50"
+                        : "bg-red-600/30 border-red-500/40 hover:bg-red-600/50"
+                    }`}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowLogoutConfirm(false);
+                      setShowDeleteConfirm(false);
+                    }}
+                    className="px-5 py-2 rounded-lg font-medium backdrop-blur-md border border-blue-500/40 bg-blue-600/30 hover:bg-blue-600/50 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Other modals */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultIsLogin={authMode}
+      />
+      <HistoryLogModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+      />
+      <PreviousResultsModal
+        isOpen={showPreviousResultsModal}
+        onClose={() => setShowPreviousResultsModal(false)}
+      />
     </>
   );
 }

@@ -23,7 +23,7 @@ function Results() {
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat text-white font-Poppins"
       style={{
-        backgroundImage: "url('/images/6.jpg')",
+        backgroundImage: "url('/images/main.jpg')",
       }}
     >
       <ResultsSection results={results} message={message} />
