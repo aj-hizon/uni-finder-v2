@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { X, Trash2 } from "lucide-react";
 
 export default function PreviousResultsModal({ isOpen, onClose }) {
@@ -74,9 +75,17 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
     return tuition;
   };
 
+  const getBoardPassingRateDisplay = (rate) => {
+    if (!rate || rate === "-" || rate.toLowerCase().includes("n/a")) {
+      return "No Board Exam";
+    }
+    return rate;
+  };
+
   if (!isOpen) return null;
 
-  return (
+  // 👇 Render the modal at document.body level (prevents clipping or layout bugs)
+  return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[9999] flex justify-center items-start bg-black/60 backdrop-blur-sm overflow-y-auto py-10 px-4 font-poppins">
       <div className="relative bg-[#0a1733]/90 backdrop-blur-2xl border border-blue-400/20 rounded-2xl w-full max-w-6xl p-6 text-white shadow-2xl font-poppins">
         {/* Close Button */}
@@ -94,7 +103,7 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
         {/* Clear Results Button */}
         <div className="flex justify-end mb-4 font-poppins">
           <button
-            className="flex items-center gap-2 px-4 py-2 bg-red-600/70 hover:bg-red-500 rounded-lg text-white font-semibold text-sm"
+            className="flex items-center gap-2 px-4 py-2 border border-red-500/70 hover:border-red-500 text-red-400 hover:text-red-300 rounded-lg font-semibold text-sm transition"
             onClick={() => alert("Clear results feature coming soon!")}
           >
             <Trash2 size={16} /> Clear Results
@@ -130,11 +139,11 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                   </h4>
                   <div className="bg-blue-950/30 p-4 rounded-lg border border-blue-400/10 text-sm space-y-1 leading-relaxed font-poppins">
                     {Object.entries(resItem.answers || {}).map(([key, value]) => (
-                      <div key={key} className="flex gap-1">
+                      <div key={key} className="flex gap-1 flex-wrap">
                         <span className="font-medium capitalize text-blue-100">
                           {key}:
                         </span>
-                        <span className="text-white/80">
+                        <span className="text-white/80 break-words">
                           {Array.isArray(value)
                             ? value.join(", ")
                             : typeof value === "object"
@@ -153,8 +162,8 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                   </h4>
                   {resItem.results && resItem.results.length > 0 ? (
                     <div className="overflow-x-auto rounded-lg border border-blue-400/20 font-poppins">
-                      <table className="w-full text-left border-collapse text-sm font-poppins">
-                        <thead className="bg-blue-950/40 border-b border-blue-400/30 font-semibold text-white">
+                      <table className="w-full min-w-[600px] sm:min-w-full text-left border-collapse text-xs sm:text-sm font-poppins">
+                        <thead className="bg-blue-950/40 border-b border-blue-400/30 font-semibold text-white whitespace-nowrap">
                           <tr>
                             <th className="py-2 px-3">Logo</th>
                             <th className="py-2 px-3">School Name</th>
@@ -169,30 +178,34 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                             <tr
                               key={i}
                               className={`border-b border-blue-400/10 hover:bg-blue-950/20 transition font-medium ${
-                                i % 2 === 0 ? "bg-blue-900/10" : "bg-blue-900/5"
+                                i % 2 === 0
+                                  ? "bg-blue-900/10"
+                                  : "bg-blue-900/5"
                               }`}
                             >
                               {/* Logo */}
                               <td className="py-2 px-3">
-                                <div className="flex items-center justify-center bg-white p-1 rounded-md w-14 h-14 border border-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                                <div className="flex items-center justify-center bg-white p-1 rounded-md w-10 h-10 sm:w-14 sm:h-14 border border-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
                                   <img
                                     src={
                                       schoolImages[r.school] ||
                                       "https://via.placeholder.com/80x60?text=School"
                                     }
                                     alt={r.school || "School"}
-                                    className="w-12 h-12 object-contain rounded"
+                                    className="w-8 h-8 sm:w-12 sm:h-12 object-contain rounded"
                                   />
                                 </div>
                               </td>
 
                               {/* School Name */}
-                              <td className="py-2 px-3 font-semibold text-blue-100">
+                              <td className="py-2 px-3 font-semibold text-blue-100 whitespace-normal break-words">
                                 {r.school || "-"}
                               </td>
 
                               {/* Location */}
-                              <td className="py-2 px-3">{r.location || "-"}</td>
+                              <td className="py-2 px-3 whitespace-normal break-words">
+                                {r.location || "-"}
+                              </td>
 
                               {/* School Type */}
                               <td className="py-2 px-3 capitalize">
@@ -206,7 +219,9 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
 
                               {/* Board Passing Rate */}
                               <td className="py-2 px-3">
-                                {r.board_passing_rate || "-"}
+                                {getBoardPassingRateDisplay(
+                                  r.board_passing_rate
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -224,6 +239,7 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body // ✅ renders at the root of the DOM
   );
 }

@@ -202,32 +202,81 @@ export default function CompareProgram() {
       <Navbar />
 
       {/* Sorting & Filtering */}
-      <div className="flex flex-wrap justify-center gap-3 mt-10 mb-12 text-white font-Poppins">
+<div className="flex flex-wrap justify-center items-center gap-3 text-white mt-10 mb-10 sm:mt-16 sm:mb-12">
+
+ {(() => {
+    const selectClass =
+      "appearance-none bg-transparent !bg-blue-800/60 !backdrop-blur-md hover:!bg-blue-800/30 border border-white/30 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 pr-8 sm:pr-10 text-white transition-colors duration-200 focus:outline-none text-xs sm:text-sm md:text-base font-medium shrink";
+
+    const selectStyle = {
+      WebkitAppearance: "none",
+      MozAppearance: "none",
+      appearance: "none",
+      backgroundColor: "rgba(30, 58, 138, 0.2)",
+      backdropFilter: "blur(12px)",
+      color: "white",
+      backgroundImage:
+        "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 7l4.5 4.5L14.5 7'/%3E%3C/svg%3E\")",
+      backgroundRepeat: "no-repeat",
+      backgroundPosition: "right 0.6rem center", // keep arrow aligned
+      backgroundSize: "0.9rem", // original arrow size preserved
+      borderColor: "rgba(255, 255, 255, 0.3)",
+    };
+
+    const optionStyle = {
+      backgroundColor: "rgba(30, 64, 175, 0.9)",
+      color: "white",
+    };
+
+    return (
+      <>
+        {/* Main Filter Selector */}
         <select
           value={activeFilter}
           onChange={(e) => {
             setActiveFilter(e.target.value);
             setSubOption("");
           }}
-          className="bg-white/10 border border-white/30 rounded-full px-4 py-2 backdrop-blur-md text-white"
+          className={selectClass}
+          style={selectStyle}
         >
-          <option value="">Select Filter / Sort</option>
-          <option value="board">Board Passing Rate</option>
-          <option value="tuition">Tuition Fee</option>
-          <option value="school_type">School Type</option>
-          <option value="location">Location</option>
-          <option value="unirank">UniRank</option>
+          <option style={optionStyle} value="">
+            Select Filter / Sort
+          </option>
+          <option style={optionStyle} value="board">
+            Board Passing Rate
+          </option>
+          <option style={optionStyle} value="tuition">
+            Tuition Fee
+          </option>
+          <option style={optionStyle} value="school_type">
+            School Type
+          </option>
+          <option style={optionStyle} value="location">
+            Location
+          </option>
+          <option style={optionStyle} value="unirank">
+            UniRank
+          </option>
         </select>
 
+        {/* Sub-options */}
         {activeFilter === "board" && (
           <select
             value={subOption}
             onChange={(e) => setSubOption(e.target.value)}
-            className="bg-white/10 border border-white/30 rounded-full px-4 py-2 backdrop-blur-md text-white"
+            className={selectClass}
+            style={selectStyle}
           >
-            <option value="">Select Board Rate</option>
-            <option value="board_high">High → Low</option>
-            <option value="board_low">Low → High</option>
+            <option style={optionStyle} value="">
+              Select Board Rate
+            </option>
+            <option style={optionStyle} value="board_high">
+              High → Low
+            </option>
+            <option style={optionStyle} value="board_low">
+              Low → High
+            </option>
           </select>
         )}
 
@@ -235,14 +284,27 @@ export default function CompareProgram() {
           <select
             value={subOption}
             onChange={(e) => setSubOption(e.target.value)}
-            className="bg-white/10 border border-white/30 rounded-full px-4 py-2 backdrop-blur-md text-white"
+            className={selectClass}
+            style={selectStyle}
           >
-            <option value="">Select Tuition Range</option>
-            <option value="0-3000">₱0 - ₱3,000</option>
-            <option value="3000-5000">₱3,000 - ₱5,000</option>
-            <option value="5000-8000">₱5,000 - ₱8,000</option>
-            <option value="8000-12000">₱8,000 - ₱12,000</option>
-            <option value="12000+">₱12,000+</option>
+            <option style={optionStyle} value="">
+              Select Tuition Range
+            </option>
+            <option style={optionStyle} value="0-3000">
+              ₱0 - ₱3,000
+            </option>
+            <option style={optionStyle} value="3000-5000">
+              ₱3,000 - ₱5,000
+            </option>
+            <option style={optionStyle} value="5000-8000">
+              ₱5,000 - ₱8,000
+            </option>
+            <option style={optionStyle} value="8000-12000">
+              ₱8,000 - ₱12,000
+            </option>
+            <option style={optionStyle} value="12000+">
+              ₱12,000+
+            </option>
           </select>
         )}
 
@@ -250,11 +312,18 @@ export default function CompareProgram() {
           <select
             value={subOption}
             onChange={(e) => setSubOption(e.target.value)}
-            className="bg-white/10 border border-white/30 rounded-full px-4 py-2 backdrop-blur-md text-white"
+            className={selectClass}
+            style={selectStyle}
           >
-            <option value="">Select School Type</option>
-            <option value="public">Public</option>
-            <option value="private">Private</option>
+            <option style={optionStyle} value="">
+              Select School Type
+            </option>
+            <option style={optionStyle} value="public">
+              Public
+            </option>
+            <option style={optionStyle} value="private">
+              Private
+            </option>
           </select>
         )}
 
@@ -262,18 +331,25 @@ export default function CompareProgram() {
           <select
             value={subOption}
             onChange={(e) => setSubOption(e.target.value)}
-            className="bg-white/10 border border-white/30 rounded-full px-4 py-2 backdrop-blur-md text-white"
+            className={selectClass}
+            style={selectStyle}
           >
-            <option value="">Select Location</option>
-            <option value="Angeles">Angeles</option>
-            <option value="San Fernando">San Fernando</option>
-            <option value="Mabalacat">Mabalacat</option>
-            <option value="Other">Other</option>
+            <option style={optionStyle} value="">
+              Select Location
+            </option>
+            <option style={optionStyle} value="Angeles">Angeles</option>
+            <option style={optionStyle} value="San Fernando">San Fernando</option>
+            <option style={optionStyle} value="Mabalacat">Mabalacat</option>
+            <option style={optionStyle} value="Bacolor">Bacolor</option>
+            <option style={optionStyle} value="Magalang">Magalang</option>
+            <option style={optionStyle} value="Mexico">Mexico</option>
+            <option style={optionStyle} value="Bulacan">Bulacan</option>
+            <option style={optionStyle} value="Other">Other</option>
           </select>
         )}
 
         {activeFilter === "unirank" && (
-          <div className="text-white font-semibold px-4 py-2 bg-white/10 rounded-full">
+          <div className="text-white text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-4 py-1.5 sm:py-2 !bg-blue-800/20 !backdrop-blur-md border border-white/30 rounded-full transition-colors duration-200 text-center shrink">
             Sorted by UniRank
           </div>
         )}
@@ -284,12 +360,19 @@ export default function CompareProgram() {
               setActiveFilter("");
               setSubOption("");
             }}
-            className="bg-red-600/50 hover:bg-red-600/70 text-white px-4 py-2 rounded-full"
+            className="!bg-red-600/40 hover:!bg-red-600/60 text-white text-xs sm:text-sm md:text-base font-medium px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shrink"
           >
             Clear
           </button>
         )}
-      </div>
+      </>
+    );
+  })()}
+</div>
+
+
+
+  
 
       {/* School Cards */}
       <div

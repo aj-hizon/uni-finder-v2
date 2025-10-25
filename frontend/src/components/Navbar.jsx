@@ -120,7 +120,8 @@ function Navbar() {
 
       {/* 🔹 Navbar */}
       <div className="w-full flex justify-center absolute top-3 xs:top-4 sm:top-5 md:top-6 left-0 z-50">
-        <nav className="flex items-center justify-between w-[95%] xs:w-[90%] sm:w-[85%] md:w-[80%] lg:w-[70%] xl:w-[60%] px-3 sm:px-5 py-2 sm:py-3 rounded-full bg-[#003C8F]/90 backdrop-blur-md shadow-lg text-white">
+        <nav className="flex items-center justify-between w-[95%] xs:w-[90%] sm:w-[85%] md:w-[80%] lg:w-[70%] xl:w-[60%] px-3 sm:px-5 py-2 sm:py-3 rounded-full bg-[#002766] backdrop-blur-md shadow-lg text-white">
+
           <Link to="/" className="flex items-center space-x-2 text-white">
             <GraduationCap className="w-6 xs:w-7 h-6 xs:h-7 text-white drop-shadow-lg" />
             <span className="text-sm xs:text-base sm:text-lg md:text-2xl font-bold text-white tracking-wide">

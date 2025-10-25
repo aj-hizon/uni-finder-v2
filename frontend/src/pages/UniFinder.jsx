@@ -62,29 +62,94 @@ function UniFinder() {
   { 
     key: "academics", 
     title: "Which school subjects or learning areas excite you the most?", 
-    choices: ["Math", "Science", "English", "History/Social Studies", "Physical Education", "Arts & Design", "Technology/ICT"] 
+    choices: [
+      "Mathematics", 
+      "Physics", 
+      "Chemistry", 
+      "Biology", 
+      "English",  
+      "History", 
+      "Geography", 
+      "Sports", 
+      "Visual Arts", 
+      "Music", 
+      "Drama/Performing Arts", 
+      "ICT", 
+      "Economics", 
+      "Philosophy",
+      "Languages"
+    ] 
   },
   { 
     key: "fields", 
     title: "Which career industries or professional fields interest you most?", 
-    choices: ["Engineering", "Architecture", "Arts & Media", "Healthcare", "Education", "Community & Social Work", "Law & Governance", "Information Technology"] 
+    choices: [
+      "Engineering", 
+      "Architecture", 
+      "Graphic Design", 
+      "Film & Animation", 
+      "Healthcare", 
+      "Education", 
+      "Community & Social Work", 
+      "Law & Governance", 
+      "Information Technology", 
+      "Research & Development", 
+      "Entrepreneurship", 
+      "Environmental Science"
+    ] 
   },
   { 
     key: "activities", 
     title: "What types of tasks do you naturally enjoy or excel at?", 
-    choices: ["Designing/Creating", "Solving complex problems", "Writing/Storytelling", "Hands-on building/Repairing", "Guiding/Mentoring others", "Researching/Analyzing", "Presenting/Speaking"] 
+    choices: [
+      "Designing/Creating", 
+      "Problem-solving", 
+      "Writing/Storytelling", 
+      "Hands-on building/Repairing", 
+      "Mentoring/Guiding others", 
+      "Researching/Analyzing", 
+      "Presenting/Speaking", 
+      "Organizing/Planning", 
+      "Data Interpretation", 
+      "Experimenting/Testing", 
+      "Strategizing/Decision-making"
+    ] 
   },
   { 
     key: "goals", 
     title: "What outcomes or achievements matter most in your future career?", 
-    choices: ["Improving lives", "Driving innovation", "Educating others", "Growing a business", "Promoting fairness & justice", "Protecting the environment", "Mastering expertise in a field"] 
+    choices: [
+      "Improving lives", 
+      "Driving innovation", 
+      "Educating others", 
+      "Growing a business", 
+      "Promoting fairness & justice", 
+      "Protecting the environment", 
+      "Mastering expertise in a field", 
+      "Gaining recognition for work", 
+      "Creating sustainable solutions", 
+      "Building professional networks"
+    ] 
   },
   { 
     key: "environment", 
     title: "What kind of workplace or setting do you see yourself thriving in?", 
-    choices: ["Corporate office", "Academic institution", "Hospital or clinic", "Outdoor/nature setting", "Workshop or laboratory", "Creative studio", "Tech-driven workspace"] 
+    choices: [
+      "Corporate office", 
+      "Academic institution", 
+      "Hospital or clinic", 
+      "Outdoor/nature setting", 
+      "Workshop or laboratory", 
+      "Creative studio", 
+      "Tech-driven workspace", 
+      "Remote/flexible work", 
+      "Fast-paced/high-pressure environment", 
+      "Collaborative team setting", 
+      "Independent/solo projects"
+    ] 
   }
 ];
+
 
 
   const search = async () => {
@@ -256,24 +321,24 @@ const ProgressBar = () => {
 
               return (
                 <div
-                  key={choice}
-                  onClick={() =>
-                    !isDisabled && handleCheckboxChange(q.key, choice)
-                  }
-                  className={`
-                    px-3 py-1.5 sm:px-4 sm:py-2 
-                    rounded-full text-sm sm:text-base md:text-lg 
-                    font-medium cursor-pointer transition
-                    ${isSelected
-                      ? "border-2 sm:border-4 border-white"
-                      : "border border-blue-400 opacity-80 hover:opacity-100"}
-                    bg-white/10 backdrop-blur-sm
-                    text-white font-poppins
-                    ${isDisabled ? "opacity-40 cursor-not-allowed" : ""}
-                  `}
-                >
-                  {choice}
-                </div>
+        key={choice}
+        onClick={() =>
+          !isDisabled && handleCheckboxChange(q.key, choice)
+        }
+        className={`
+          px-2 py-1 sm:px-3 sm:py-1.5 md:px-3.5 md:py-1.5
+          rounded-full text-xs sm:text-sm md:text-base
+          font-medium cursor-pointer transition
+          ${isSelected
+            ? "bg-blue-500/40 border-2 border-blue-300 shadow-[0_0_8px_rgba(147,197,253,0.6)]"
+            : "bg-white/10 border border-blue-400 hover:bg-blue-900/30"}
+          backdrop-blur-sm text-white font-poppins
+          ${isDisabled ? "opacity-40 cursor-not-allowed" : ""}
+        `}
+      >
+        {choice}
+      </div>
+
               );
             })}
           </div>
@@ -511,27 +576,26 @@ const ProgressBar = () => {
         {filteredLocations.map((loc) => {
           const isSelected = locations.includes(loc);
           return (
-            <div
-              key={loc}
-              onClick={() => {
-                setLocations((prev) =>
-                  isSelected ? prev.filter((l) => l !== loc) : [...prev, loc]
-                );
-              }}
-              className={`
-                px-3 py-1.5 sm:px-5 sm:py-2 md:px-6 md:py-3
-                rounded-full 
-                text-sm sm:text-base md:text-lg 
-                font-medium font-poppins cursor-pointer transition
-                ${isSelected
-                  ? "border-2 sm:border-4 border-white"
-                  : "border border-blue-400 opacity-80 hover:opacity-100"}
-                bg-white/10 backdrop-blur-sm
-                text-white
-              `}
-            >
-              {loc}
-            </div>
+           <div
+        key={loc}
+        onClick={() => {
+          setLocations((prev) =>
+            isSelected ? prev.filter((l) => l !== loc) : [...prev, loc]
+          );
+        }}
+        className={`
+          px-3 py-1.5 sm:px-5 sm:py-2 md:px-6 md:py-3
+          rounded-full 
+          text-sm sm:text-base md:text-lg 
+          font-medium font-poppins cursor-pointer transition
+          ${isSelected
+            ? "bg-blue-500/40 border-2 sm:border-4 border-blue-300 shadow-[0_0_8px_rgba(147,197,253,0.6)]"
+            : "bg-white/10 border border-blue-400 opacity-80 hover:opacity-100 hover:bg-blue-900/30"}
+          backdrop-blur-sm text-white
+        `}
+      >
+        {loc}
+      </div>
           );
         })}
       </div>

@@ -53,49 +53,32 @@ def recommend(answers: dict, school_type: str = None, locations: list[str] = Non
 
     combined_vector = np.mean(valid_vectors, axis=0).reshape(1, -1)
 
-    # Step 2: Match against programs
-    strong_matches = []
-    weak_matches = []
-
+    # Step 2: Compute cosine similarity for all programs and apply filters
+    candidate_programs = []
     for entry in program_data:
         try:
             entry_type = entry.get("school_type", "").lower()
+            if school_type and school_type.lower() != "any" and entry_type != school_type.lower():
+                continue
 
-            # 🎓 School type filter
-            if school_type and school_type.lower() != "any":
-                if entry_type != school_type.lower():
-                    continue
-
-            # 📍 Location filter
             if locations:
                 entry_location = entry.get("location", "").lower()
                 if all(loc.lower() not in entry_location for loc in locations):
                     continue
 
-            # 💰 Budget filter
             if max_budget is not None:
                 tuition = entry.get("tuition_per_semester")
                 if tuition is not None and isinstance(tuition, (int, float)) and tuition > max_budget:
                     continue
 
-            # 📈 Cosine similarity
             program_vector = np.array(entry["vector"]).reshape(1, -1)
             similarity_score = cosine_similarity(program_vector, combined_vector)[0][0]
-
-            # 🏫 Ranking & rating adjustments
-            category = entry.get("category")
-            rating_score = get_school_rating(entry["school"], category) or 0
-
-            final_score = round(
-                (similarity_score * (1 - CATEGORY_WEIGHT)) + (rating_score / 10 * CATEGORY_WEIGHT),
-                3
-            )
 
             result_item = {
                 "school": entry.get("school"),
                 "program": entry.get("name"),
                 "description": entry.get("description"),
-                "score": final_score,
+                "similarity_score": similarity_score,
                 "tuition_per_semester": entry.get("tuition_per_semester"),
                 "tuition_annual": entry.get("tuition_annual"),
                 "tuition_notes": entry.get("tuition_notes"),
@@ -109,29 +92,45 @@ def recommend(answers: dict, school_type: str = None, locations: list[str] = Non
                 "board_passing_rate": entry.get("board_passing_rate"),
                 "national_passing_rate": entry.get("national_passing_rate"),  
                 "uni_rank": entry.get("uni_rank"),  
-                "category": category,
+                "category": entry.get("category"),
             }
 
-            if similarity_score >= THRESHOLD:
-                strong_matches.append(result_item)
-            else:
-                weak_matches.append(result_item)
+            candidate_programs.append(result_item)
 
         except Exception as e:
             print(f"⚠️ Skipping invalid entry: {e}")
             continue
 
-    # Step 3: Sort and prepare results
-    strong_matches.sort(key=lambda x: x["score"], reverse=True)
-    weak_matches.sort(key=lambda x: x["score"], reverse=True)
+    # Step 3: Separate strong and weak matches by cosine similarity threshold
+    strong_matches = [p for p in candidate_programs if p["similarity_score"] >= THRESHOLD]
+    weak_matches = [p for p in candidate_programs if p["similarity_score"] < THRESHOLD]
 
-    top_category = strong_matches[0].get("category") if strong_matches else None
+    # Sort strong matches by similarity first
+    strong_matches.sort(key=lambda x: x["similarity_score"], reverse=True)
+    weak_matches.sort(key=lambda x: x["similarity_score"], reverse=True)
+
+    # Step 4: Detect top category from strong matches
+    from collections import Counter
+    categories = [p["category"] for p in strong_matches if p["category"]]
+    top_category = Counter(categories).most_common(1)[0][0] if categories else None
+
+    # Step 5: Reorder strong matches within top category using school rating
+    for p in strong_matches:
+        if top_category and p["category"] == top_category:
+            p["school_rank"] = get_school_rating(p["school"], top_category) or 0
+        else:
+            p["school_rank"] = 0
+
+    final_strong = sorted(strong_matches, key=lambda x: (x["similarity_score"], x["school_rank"]), reverse=True)
+    final_weak = sorted(weak_matches, key=lambda x: x["similarity_score"], reverse=True)
+
+    # Step 6: Get top ranked schools for the top category
     top_ranked_schools = rankings_data.get(top_category, [])[:5] if top_category else []
 
-    # Fallback if no strong matches
-    if not strong_matches:
-        fallback_results = weak_matches[:6]  # suggest at least 6 programs
-        fallback_weak = weak_matches[6:12] if len(weak_matches) > 6 else []
+    # Step 7: Fallback if no strong matches
+    if not final_strong:
+        fallback_results = final_weak[:6]  # suggest at least 6 programs
+        fallback_weak = final_weak[6:12] if len(final_weak) > 6 else []
 
         return {
             "type": "fallback",
@@ -144,8 +143,8 @@ def recommend(answers: dict, school_type: str = None, locations: list[str] = Non
 
     return {
         "type": "exact",
-        "results": strong_matches[:10],
-        "weak_matches": weak_matches[:10],
+        "results": final_strong[:10],
+        "weak_matches": final_weak[:10],
         "matched_category": top_category,
         "top_schools_for_category": top_ranked_schools
     }

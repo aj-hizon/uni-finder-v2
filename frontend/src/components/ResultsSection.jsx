@@ -76,6 +76,7 @@ const [activeFilter, setActiveFilter] = useState(""); // Main filter selected
 const [subOption, setSubOption] = useState(""); // Sub-option selected (High-Low, Tuition range, etc.)
 
 
+
   // Get user geolocation
   useEffect(() => {
     if (navigator.geolocation) {
@@ -170,7 +171,26 @@ if (activeFilter === "board" && subOption) {
     (item) => item.school_type?.toLowerCase() === subOption
   );
 } else if (activeFilter === "location" && subOption) {
-  displayedResults = displayedResults.filter((item) => item.location === subOption);
+  if (subOption.toLowerCase() === "other") {
+    const knownLocations = [
+      "angeles",
+      "san fernando",
+      "mabalacat",
+      "bacolor",
+      "magalang",
+      "mexico",
+      "bulacan",
+    ];
+
+    displayedResults = displayedResults.filter(
+      (item) => !knownLocations.includes(item.location.toLowerCase())
+    );
+  } else {
+    displayedResults = displayedResults.filter((item) =>
+      item.location.toLowerCase().includes(subOption.toLowerCase())
+    );
+  }
+
 } else if (activeFilter === "unirank") {
   // --- Only for UniRank sorting ---
   // Step 1: Group programs by school
@@ -201,108 +221,205 @@ if (activeFilter === "board" && subOption) {
     <div className="font-Poppins">
       <Navbar sticky={false} />
 
-      <div className="pt-30 pb-4 px-4 w-full max-w-7xl mx-auto text-white">
-        {/* Title */}
-        <div className="flex flex-col items-center mb-12 mt-12 text-center space-y-6 w-full px-4">
-          <h1 className="font-bold text-white text-center w-full"
-              style={{ fontSize: "clamp(1.5rem, 5vw, 3rem)", lineHeight: "clamp(2rem, 6vw, 3.5rem)" }}>
-            Top Recommended Programs
-          </h1>
-
-          {/* Sorting & Filtering */}
-<div className="flex flex-wrap justify-center gap-3 mt-6 mb-12 text-white">
-  {/* Main Filter Selector */}
-  <select
-    value={activeFilter}
-    onChange={(e) => {
-      setActiveFilter(e.target.value);
-      setSubOption(""); // reset sub-option when main filter changes
-    }}
-    className="bg-white/10 border border-white/30 rounded-full px-4 py-2 backdrop-blur-md text-white"
-  >
-    <option value="">Select Filter / Sort</option>
-    <option value="board">Board Passing Rate</option>
-    <option value="tuition">Tuition Fee</option>
-    <option value="school_type">School Type</option>
-    <option value="location">Location</option>
-    <option value="unirank">UniRank</option>
-  </select>
-
-  {/* Sub-options appear conditionally based on activeFilter */}
-  {activeFilter === "board" && (
-    <select
-      value={subOption}
-      onChange={(e) => setSubOption(e.target.value)}
-      className="bg-white/10 border border-white/30 rounded-full px-4 py-2 backdrop-blur-md text-white"
-    >
-      <option value="">Select Board Rate</option>
-      <option value="board_high">High → Low</option>
-      <option value="board_low">Low → High</option>
-    </select>
-  )}
-
-  {activeFilter === "tuition" && (
-    <select
-      value={subOption}
-      onChange={(e) => setSubOption(e.target.value)}
-      className="bg-white/10 border border-white/30 rounded-full px-4 py-2 backdrop-blur-md text-white"
-    >
-      <option value="">Select Tuition Range</option>
-      <option value="0-3000">₱0 - ₱3,000</option>
-      <option value="3000-5000">₱3,000 - ₱5,000</option>
-      <option value="5000-8000">₱5,000 - ₱8,000</option>
-      <option value="8000-12000">₱8,000 - ₱12,000</option>
-      <option value="12000+">₱12,000+</option>
-    </select>
-  )}
-
-  {activeFilter === "school_type" && (
-    <select
-      value={subOption}
-      onChange={(e) => setSubOption(e.target.value)}
-      className="bg-white/10 border border-white/30 rounded-full px-4 py-2 backdrop-blur-md text-white"
-    >
-      <option value="">Select School Type</option>
-      <option value="public">Public</option>
-      <option value="private">Private</option>
-    </select>
-  )}
-
-  {activeFilter === "location" && (
-    <select
-      value={subOption}
-      onChange={(e) => setSubOption(e.target.value)}
-      className="bg-white/10 border border-white/30 rounded-full px-4 py-2 backdrop-blur-md text-white"
-    >
-      <option value="">Select Location</option>
-      <option value="Angeles">Angeles</option>
-      <option value="San Fernando">San Fernando</option>
-      <option value="Mabalacat">Mabalacat</option>
-      <option value="Other">Other</option>
-    </select>
-  )}
-
-  {activeFilter === "unirank" && (
-    <div className="text-white font-semibold px-4 py-2 bg-white/10 rounded-full">
-      Sorted by UniRank
-    </div>
-  )}
-
-  {/* Optional Clear Button */}
-  {(activeFilter || subOption) && (
-    <button
-      onClick={() => {
-        setActiveFilter("");
-        setSubOption("");
+     <div className="pt-30 pb-4 px-4 w-full max-w-7xl mx-auto text-white">
+  {/* Title */}
+  <div className="flex flex-col items-center mb-12 mt-12 text-center space-y-6 w-full px-4">
+    <h1
+      className="font-poppins font-bold text-white text-center w-full truncate whitespace-nowrap"
+      style={{
+        fontSize: "clamp(1rem, 5vw, 3rem)", // smaller minimum font for very small screens
+        lineHeight: "1.2", // tighter line height to avoid wrapping
       }}
-      className="bg-red-600/50 hover:bg-red-600/70 text-white px-4 py-2 rounded-full"
+      title="Top Recommended Programs"
     >
-      Clear
-    </button>
-  )}
+      Top Recommended Programs
+    </h1>
+
+{/* Sorting & Filtering */}
+<div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 md:gap-4 mb-4 text-white px-2">
+
+  {(() => {
+    const selectClass =
+      "appearance-none bg-transparent !bg-blue-800/60 !backdrop-blur-md hover:!bg-blue-800/30 border border-white/30 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 pr-8 sm:pr-10 text-white transition-colors duration-200 focus:outline-none text-xs sm:text-sm md:text-base font-medium shrink";
+
+    const selectStyle = {
+      WebkitAppearance: "none",
+      MozAppearance: "none",
+      appearance: "none",
+      backgroundColor: "rgba(30, 58, 138, 0.2)",
+      backdropFilter: "blur(12px)",
+      color: "white",
+      backgroundImage:
+        "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 7l4.5 4.5L14.5 7'/%3E%3C/svg%3E\")",
+      backgroundRepeat: "no-repeat",
+      backgroundPosition: "right 0.6rem center", // keep arrow aligned
+      backgroundSize: "0.9rem", // original arrow size preserved
+      borderColor: "rgba(255, 255, 255, 0.3)",
+    };
+
+    const optionStyle = {
+      backgroundColor: "rgba(30, 64, 175, 0.9)",
+      color: "white",
+    };
+
+    return (
+      <>
+        {/* Main Filter Selector */}
+        <select
+          value={activeFilter}
+          onChange={(e) => {
+            setActiveFilter(e.target.value);
+            setSubOption("");
+          }}
+          className={selectClass}
+          style={selectStyle}
+        >
+          <option style={optionStyle} value="">
+            Select Filter / Sort
+          </option>
+          <option style={optionStyle} value="board">
+            Board Passing Rate
+          </option>
+          <option style={optionStyle} value="tuition">
+            Tuition Fee
+          </option>
+          <option style={optionStyle} value="school_type">
+            School Type
+          </option>
+          <option style={optionStyle} value="location">
+            Location
+          </option>
+          <option style={optionStyle} value="unirank">
+            UniRank
+          </option>
+        </select>
+
+        {/* Sub-options */}
+        {activeFilter === "board" && (
+          <select
+            value={subOption}
+            onChange={(e) => setSubOption(e.target.value)}
+            className={selectClass}
+            style={selectStyle}
+          >
+            <option style={optionStyle} value="">
+              Select Board Rate
+            </option>
+            <option style={optionStyle} value="board_high">
+              High → Low
+            </option>
+            <option style={optionStyle} value="board_low">
+              Low → High
+            </option>
+          </select>
+        )}
+
+        {activeFilter === "tuition" && (
+          <select
+            value={subOption}
+            onChange={(e) => setSubOption(e.target.value)}
+            className={selectClass}
+            style={selectStyle}
+          >
+            <option style={optionStyle} value="">
+              Select Tuition Range
+            </option>
+            <option style={optionStyle} value="0-3000">
+              ₱0 - ₱3,000
+            </option>
+            <option style={optionStyle} value="3000-5000">
+              ₱3,000 - ₱5,000
+            </option>
+            <option style={optionStyle} value="5000-8000">
+              ₱5,000 - ₱8,000
+            </option>
+            <option style={optionStyle} value="8000-12000">
+              ₱8,000 - ₱12,000
+            </option>
+            <option style={optionStyle} value="12000+">
+              ₱12,000+
+            </option>
+          </select>
+        )}
+
+        {activeFilter === "school_type" && (
+          <select
+            value={subOption}
+            onChange={(e) => setSubOption(e.target.value)}
+            className={selectClass}
+            style={selectStyle}
+          >
+            <option style={optionStyle} value="">
+              Select School Type
+            </option>
+            <option style={optionStyle} value="public">
+              Public
+            </option>
+            <option style={optionStyle} value="private">
+              Private
+            </option>
+          </select>
+        )}
+
+        {activeFilter === "location" && (
+          <select
+            value={subOption}
+            onChange={(e) => setSubOption(e.target.value)}
+            className={selectClass}
+            style={selectStyle}
+          >
+            <option style={optionStyle} value="">
+              Select Location
+            </option>
+            <option style={optionStyle} value="Angeles">Angeles</option>
+            <option style={optionStyle} value="San Fernando">San Fernando</option>
+            <option style={optionStyle} value="Mabalacat">Mabalacat</option>
+            <option style={optionStyle} value="Bacolor">Bacolor</option>
+            <option style={optionStyle} value="Magalang">Magalang</option>
+            <option style={optionStyle} value="Mexico">Mexico</option>
+            <option style={optionStyle} value="Bulacan">Bulacan</option>
+            <option style={optionStyle} value="Other">Other</option>
+          </select>
+        )}
+
+        {activeFilter === "unirank" && (
+          <div className="text-white text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-4 py-1.5 sm:py-2 !bg-blue-800/20 !backdrop-blur-md border border-white/30 rounded-full transition-colors duration-200 text-center shrink">
+            Sorted by UniRank
+          </div>
+        )}
+
+        {(activeFilter || subOption) && (
+          <button
+            onClick={() => {
+              setActiveFilter("");
+              setSubOption("");
+            }}
+            className="!bg-red-600/40 hover:!bg-red-600/60 text-white text-xs sm:text-sm md:text-base font-medium px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shrink"
+          >
+            Clear
+          </button>
+        )}
+      </>
+    );
+  })()}
 </div>
 
+
+
+
         </div>
+
+        {/* Message from backend */}
+{message && (
+  <div className="mx-auto mb-6 px-6 py-3 rounded-2xl text-white font-Poppins font-semibold
+                  bg-red-600/30 backdrop-blur-md border border-white/40 shadow-md text-center
+                  w-full max-w-[85%] sm:max-w-[600px] md:max-w-[800px] lg:max-w-[1000px]">
+    {message}
+  </div>
+)}
+
+
+
 
         {/* Results */}
         <div className="space-y-6">
@@ -346,10 +463,12 @@ medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
             
 
             return (
-              <div key={index}
-                className={`rounded-2xl ${rankColor} backdrop-blur-md border shadow-md transition-all duration-300 cursor-pointer hover:shadow-xl p-6 w-full sm:w-[95%] md:w-[90%] lg:w-[85%] mx-auto ${isExpanded ? "scale-[1.02]" : ""}`}
-                onClick={() => setExpandedIndex(isExpanded ? null : index)}
-              >
+              <div
+  key={index}
+  className={`rounded-2xl bg-blue-800/30 backdrop-blur-md border shadow-md transition-all duration-300 cursor-pointer hover:shadow-xl p-6 w-full sm:w-[95%] md:w-[90%] lg:w-[85%] mx-auto ${isExpanded ? "scale-[1.02]" : ""}`}
+  onClick={() => setExpandedIndex(isExpanded ? null : index)}
+>
+
                 {/* Rank + Header */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2 text-white font-bold text-lg">
@@ -367,18 +486,33 @@ medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
                   )}
 
                   <div className="flex-1 min-w-0 text-left">
-                    <h2 className="font-semibold text-[13px] sm:text-base md:text-lg text-white line-clamp-3">{item.program}</h2>
-                    <p className="text-[12px] sm:text-sm md:text-base text-white opacity-90 line-clamp-2">{item.school}</p>
-                  </div>
+  <h2 className="font-Poppins font-semibold text-[13px] sm:text-base md:text-lg text-white line-clamp-3">
+    {item.program}
+  </h2>
+  <p className="font-Poppins text-[12px] sm:text-sm md:text-base text-white opacity-90 line-clamp-2">
+    {item.school}
+  </p>
+</div>
+
+
 
                   {/* Add / Compare Button */}
                   <button
-                    className={`rounded-full font-medium transition !border !border-white/30 backdrop-blur-md !text-white shadow-md ${isSelected ? "!bg-red-600/40 hover:!bg-red-600/60" : "!bg-blue-600/30 hover:!bg-blue-600/50"} px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-sm`}
-                    onClick={(e) => { e.stopPropagation(); handleCheckboxChange(item); }}
-                  >
-                    <span className="block sm:hidden">{isSelected ? "−" : "+"}</span>
-                    <span className="hidden sm:block">{isSelected ? "Remove" : "Compare"}</span>
-                  </button>
+  className={`rounded-full font-medium transition !border !border-white/30 backdrop-blur-md !text-white shadow-md ${
+    isSelected
+      ? "!bg-red-600/40 hover:!bg-red-600/60"
+      : "!bg-[#003C8F] hover:!bg-[#002766]"
+  } px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-sm`}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleCheckboxChange(item);
+  }}
+>
+  <span className="block sm:hidden">{isSelected ? "−" : "+"}</span>
+  <span className="hidden sm:block">{isSelected ? "Remove" : "Compare"}</span>
+</button>
+
+
                 </div>
 
 
@@ -698,8 +832,8 @@ medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
 
 {showLimitWarning && (
   <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-[9999]">
-    <div className="bg-white text-red-600 font-semibold px-6 py-4 rounded-lg shadow-lg text-center">
-      ⚠️ You can only compare up to 3 programs at a time.
+    <div className="bg-blue-800/40 backdrop-blur-md text-white font-poppins font-semibold px-8 py-5 rounded-2xl shadow-2xl text-center border border-white/20">
+      You can only compare up to <span className="text-blue-200 font-bold">3 programs</span> at a time.
     </div>
   </div>
 )}

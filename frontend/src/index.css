@@ -1,6 +1,12 @@
 /* 👇 Google Fonts MUST be first */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+.font-Poppins {
+  font-family: 'Poppins', sans-serif;
+}
 
 
 /* Tailwind + other CSS imports */
@@ -150,5 +156,9 @@ h1 {
 
 /* Force all text inside CompareProgram to use Poppins */
 .compare-program * {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+.results * {
   font-family: 'Poppins', sans-serif !important;
 }
