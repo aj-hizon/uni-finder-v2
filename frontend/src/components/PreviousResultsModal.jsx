@@ -49,7 +49,7 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
   // 🏫 Local logo mapping (from /public/logos/)
   const schoolImages = {
     "Holy Angel University": "/logos/hau.png",
-    CELTECH: "/logos/celtech.png",
+    "CELTECH": "/logos/celtech.png",
     "Our Lady Of Fatima University": "/logos/fatima.png",
     "University of the Assumption": "/logos/ua.png",
     "Angeles University Foundation": "/logos/auf.png",

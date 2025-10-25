@@ -33,7 +33,7 @@ const valueOf = (obj, aliases) => {
   return null;
 };
 
-const renderValue = (v) => {
+const renderValue = (v) => { 
   if (!hasValue(v)) return "N/A";
   if (Array.isArray(v)) return v.join(", ");
   if (typeof v === "object") return JSON.stringify(v);
