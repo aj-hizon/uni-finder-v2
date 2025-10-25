@@ -240,22 +240,25 @@ if (activeFilter === "board" && subOption) {
 
   {(() => {
     const selectClass =
-      "appearance-none bg-transparent !bg-blue-800/60 !backdrop-blur-md hover:!bg-blue-800/30 border border-white/30 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 pr-8 sm:pr-10 text-white transition-colors duration-200 focus:outline-none text-xs sm:text-sm md:text-base font-medium shrink";
+  "appearance-none bg-transparent !bg-blue-800/60 !backdrop-blur-md hover:!bg-blue-800/30 border border-white/30 rounded-full px-4 sm:px-5 py-2 sm:py-2.5 pr-10 text-white transition-colors duration-200 focus:outline-none text-sm sm:text-base font-medium text-left";
 
-    const selectStyle = {
-      WebkitAppearance: "none",
-      MozAppearance: "none",
-      appearance: "none",
-      backgroundColor: "rgba(30, 58, 138, 0.2)",
-      backdropFilter: "blur(12px)",
-      color: "white",
-      backgroundImage:
-        "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 7l4.5 4.5L14.5 7'/%3E%3C/svg%3E\")",
-      backgroundRepeat: "no-repeat",
-      backgroundPosition: "right 0.6rem center", // keep arrow aligned
-      backgroundSize: "0.9rem", // original arrow size preserved
-      borderColor: "rgba(255, 255, 255, 0.3)",
-    };
+const selectStyle = {
+  WebkitAppearance: "none",
+  MozAppearance: "none",
+  appearance: "none",
+  backgroundColor: "rgba(30, 58, 138, 0.2)",
+  backdropFilter: "blur(12px)",
+  color: "white",
+  textAlign: "left", // ✅ align dropdown text to the left
+  textAlignLast: "left", // ✅ selected option stays left-aligned
+  backgroundImage:
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 7l4.5 4.5L14.5 7'/%3E%3C/svg%3E\")",
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "right 0.8rem center",
+  backgroundSize: "0.9rem",
+  borderColor: "rgba(255, 255, 255, 0.3)",
+};
+
 
     const optionStyle = {
       backgroundColor: "rgba(30, 64, 175, 0.9)",
@@ -290,7 +293,7 @@ if (activeFilter === "board" && subOption) {
             Location
           </option>
           <option style={optionStyle} value="unirank">
-            UniRank
+           Top-Ranked University
           </option>
         </select>
 
@@ -384,7 +387,7 @@ if (activeFilter === "board" && subOption) {
 
         {activeFilter === "unirank" && (
           <div className="text-white text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-4 py-1.5 sm:py-2 !bg-blue-800/20 !backdrop-blur-md border border-white/30 rounded-full transition-colors duration-200 text-center shrink">
-            Sorted by UniRank
+            Based on uniRank 2025
           </div>
         )}
 
@@ -451,15 +454,32 @@ if (activeFilter === "board" && subOption) {
 
 // Compute rank only once per school (only in UniRank mode)
 let rank, medal;
+
 if (activeFilter === "unirank") {
-  const uniqueSchools = [...new Set(displayedResults.map((r) => r.school))];
-  rank = uniqueSchools.indexOf(item.school) + 1;
+  // Normalize function to group PSU campuses
+  const normalizeSchoolName = (name) => {
+    if (!name) return "";
+    const n = name.trim().toLowerCase();
+    if (n.startsWith("pampanga state university")) return "pampanga state university";
+    return n;
+  };
+
+  // Use normalized names so all PSU campuses share the same rank
+  const uniqueSchools = [
+    ...new Set(displayedResults.map((r) => normalizeSchoolName(r.school))),
+  ];
+
+  // Find the rank of this item's normalized school
+  const normalizedSchool = normalizeSchoolName(item.school);
+  rank = uniqueSchools.indexOf(normalizedSchool) + 1;
 } else {
   rank = index + 1;
 }
+
+// Assign medals for top 3 ranks
 medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
 
-            const rankColor = "bg-[rgba(20,40,100,0.4)] backdrop-blur-lg border-[1.5px] border-[rgba(255,255,255,0.25)] shadow-lg";
+            
             
 
             return (

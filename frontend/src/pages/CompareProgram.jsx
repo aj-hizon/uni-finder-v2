@@ -256,7 +256,7 @@ export default function CompareProgram() {
             Location
           </option>
           <option style={optionStyle} value="unirank">
-            UniRank
+            Top-Ranked University
           </option>
         </select>
 
@@ -350,7 +350,7 @@ export default function CompareProgram() {
 
         {activeFilter === "unirank" && (
           <div className="text-white text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-4 py-1.5 sm:py-2 !bg-blue-800/20 !backdrop-blur-md border border-white/30 rounded-full transition-colors duration-200 text-center shrink">
-            Sorted by UniRank
+            Based on uniRank 2025
           </div>
         )}
 
@@ -389,33 +389,49 @@ export default function CompareProgram() {
         {displayedResults.map((s, idx) => {
           // Compute rank properly (school-level rank for unirank)
 let rank;
+
+// --- Normalize function to group PSU campuses under one rank ---
+const normalizeSchoolName = (name) => {
+  if (!name) return "";
+  const n = name.trim().toLowerCase();
+  if (n.startsWith("pampanga state university")) return "pampanga state university";
+  return n;
+};
+
 if (activeFilter === "unirank") {
-  const uniqueSchools = [...new Set(displayedResults.map((r) => r.school))];
-  rank = uniqueSchools.indexOf(s.school) + 1;
+  // Create a list of unique schools using normalized names
+  const uniqueSchools = [
+    ...new Set(displayedResults.map((r) => normalizeSchoolName(r.school))),
+  ];
+
+  // Use normalized name for comparison so PSU campuses share one rank
+  const normalizedSchool = normalizeSchoolName(s.school);
+  rank = uniqueSchools.indexOf(normalizedSchool) + 1;
 } else {
   rank = idx + 1;
 }
 
+// --- Medal visibility conditions ---
 const showMedal =
   ((activeFilter === "board" && subOption) ||
     activeFilter === "unirank" ||
     (activeFilter === "tuition" && subOption)) &&
   rank <= 3;
 
+// --- Medal colors (unchanged) ---
+const medalColors = {
+  1: "text-yellow-400 drop-shadow-[0_0_6px_rgba(255,215,0,0.7)]",
+  2: "text-gray-300 drop-shadow-[0_0_6px_rgba(200,200,200,0.6)]",
+  3: "text-amber-700 drop-shadow-[0_0_6px_rgba(205,127,50,0.6)]",
+};
 
-          const medalColors = {
-            1: "text-yellow-400 drop-shadow-[0_0_6px_rgba(255,215,0,0.7)]",
-            2: "text-gray-300 drop-shadow-[0_0_6px_rgba(200,200,200,0.6)]",
-            3: "text-amber-700 drop-shadow-[0_0_6px_rgba(205,127,50,0.6)]",
-          };
 
           return (
             <div
-              key={idx}
-              className={`bg-gradient-to-br ${
-                softGradients[idx % softGradients.length]
-              } border border-white/30 rounded-3xl p-6 sm:p-8 shadow-lg backdrop-blur-lg hover:shadow-[0_0_25px_rgba(59,130,246,0.3)] transition-shadow duration-300 font-Poppins relative`}
-            >
+  key={idx}
+  className="bg-blue-800/30 backdrop-blur-md border border-white/30 rounded-3xl p-6 sm:p-8 shadow-lg hover:shadow-[0_0_25px_rgba(59,130,246,0.3)] transition-shadow duration-300 font-Poppins relative"
+>
+
               {showMedal && (
   <div className="absolute top-3 left-3 flex items-center gap-2">
     <Award

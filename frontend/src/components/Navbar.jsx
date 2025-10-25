@@ -288,10 +288,10 @@ function Navbar() {
                     }}
                     className={`px-5 py-2 rounded-lg font-medium backdrop-blur-md border transition ${
                       showLogoutConfirm
-                        ? "bg-red-600/30 border-red-500/40 hover:bg-red-600/50"
-                        : "bg-red-600/30 border-red-500/40 hover:bg-red-600/50"
+                        ? "bg-red-600/40 border-red-500/40 hover:bg-red-600/60"
+                        : "bg-red-600/40 border-red-500/40 hover:bg-red-600/60"
                     }`}
-                  >
+                  > 
                     Yes
                   </button>
                   <button
@@ -299,7 +299,7 @@ function Navbar() {
                       setShowLogoutConfirm(false);
                       setShowDeleteConfirm(false);
                     }}
-                    className="px-5 py-2 rounded-lg font-medium backdrop-blur-md border border-blue-500/40 bg-blue-600/30 hover:bg-blue-600/50 transition"
+                    className="px-5 py-2 rounded-lg font-medium backdrop-blur-md border border-blue-800/40 bg-blue-600/30 hover:bg-blue-600/50 transition"
                   >
                     Cancel
                   </button>
