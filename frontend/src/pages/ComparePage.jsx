@@ -49,33 +49,34 @@ export default function ComparePage() {
 
 
   const specs = [
-    { label: "Known For", key: "what_theyre_known_for", icon: Star },
-    {
-      label: "Institutional Strengths",
-      key: "institutional_strengths",
-      icon: ListChecks,
-      format: (v) => (v?.length ? v.join(", ") : "No data available"),
-    },
-    {
-      label: "Central Luzon Rank",
-      key: "unirank",
-      icon: Award,
-      format: (v) =>
-        v?.central_luzon_rank
-          ? `#${v.central_luzon_rank} Central Luzon`
-          : v?.country_rank && v?.world_rank
-          ? `#${v.country_rank} PH / #${v.world_rank} Global`
-          : "No ranking available",
-    },
-    { label: "Dorm / Apartment", key: "dorm_apartment", icon: Home },
-    { label: "Transport Access", key: "transport_access", icon: Bus },
-    {
-      label: "Scholarships Offered",
-      key: "scholarships_offered",
-      icon: GraduationCap,
-      format: (v) => (v?.length ? v.join(", ") : "No scholarships listed"),
-    },
-  ];
+  { label: "Known For", key: "what_theyre_known_for", icon: Star },
+  {
+    label: "Institutional Strengths",
+    key: "institutional_strengths",
+    icon: ListChecks,
+    format: (v) => (v?.length ? v.join(", ") : "No data available"),
+  },
+  {
+    label: "PH Rank",
+    key: "unirank",
+    icon: Award,
+    format: (v) =>
+      v?.central_luzon_rank
+        ? `#${v.central_luzon_rank} Central Luzon`
+        : v?.country_rank && v?.world_rank
+        ? `#${v.country_rank} PH / #${v.world_rank} Global`
+        : "No ranking available",
+  },
+  { label: "Dorm / Apartment", key: "dorm_apartment", icon: Home },
+  { label: "Transport Access", key: "transport_access", icon: Bus },
+  {
+    label: "Scholarships Offered",
+    key: "scholarships_offered",
+    icon: GraduationCap,
+    format: (v) => (v?.length ? v.join(", ") : "No scholarships listed"),
+  },
+];
+
 
   // Muted, glassy gradient tones (soft, elegant, not neon)
   const softGradients = [
