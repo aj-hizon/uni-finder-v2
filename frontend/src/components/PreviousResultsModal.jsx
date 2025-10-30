@@ -2,10 +2,63 @@ import { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { X, Trash2 } from "lucide-react";
 
+// ✅ Reusable Confirmation Modal Component
+function ConfirmationModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+}) {
+  if (!isOpen) return null;
+
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-poppins">
+      <div className="bg-[#0a1733]/90 border border-blue-400/20 rounded-2xl p-6 w-full max-w-md text-white shadow-2xl relative font-poppins">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-white/70 hover:text-red-400 transition"
+        >
+          <X size={20} />
+        </button>
+
+        <h3 className="text-xl font-bold mb-3 text-center font-poppins">{title}</h3>
+        <p className="text-center text-white/80 mb-6 font-poppins">{message}</p>
+
+        <div className="flex justify-center gap-3 font-poppins">
+          {/* ❌ Cancel Button */}
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg border border-blue-800/40 bg-blue-600/30 hover:bg-blue-600/50 text-white font-semibold transition font-poppins"
+          >
+            {cancelText}
+          </button>
+
+          {/* ✅ Yes / Confirm Button */}
+          <button
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className="px-4 py-2 rounded-lg border border-red-500/40 bg-red-600/40 hover:bg-red-600/60 text-white font-semibold transition font-poppins"
+          >
+            {confirmText}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 export default function PreviousResultsModal({ isOpen, onClose }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -46,7 +99,38 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
     fetchPreviousResults();
   }, [isOpen]);
 
-  // 🏫 Local logo mapping (from /public/logos/)
+  const handleClearResults = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("You must be logged in to clear results.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await fetch("http://localhost:8000/clear-results", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to clear previous results.");
+
+      const data = await res.json();
+      console.log("🗑️", data.message);
+
+      setResults([]);
+    } catch (err) {
+      console.error(err);
+      setError("Error clearing previous results.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const schoolImages = {
     "Holy Angel University": "/logos/hau.png",
     "CELTECH": "/logos/celtech.png",
@@ -84,7 +168,6 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  // 👇 Render the modal at document.body level (prevents clipping or layout bugs)
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[9999] flex justify-center items-start bg-black/60 backdrop-blur-sm overflow-y-auto py-10 px-4 font-poppins">
       <div className="relative bg-[#0a1733]/90 backdrop-blur-2xl border border-blue-400/20 rounded-2xl w-full max-w-6xl p-6 text-white shadow-2xl font-poppins">
@@ -100,17 +183,16 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
           Previous Results
         </h2>
 
-        {/* Clear Results Button */}
         <div className="flex justify-end mb-4 font-poppins">
           <button
-            className="flex items-center gap-2 px-4 py-2 border border-red-500/70 hover:border-red-500 text-red-400 hover:text-red-300 rounded-lg font-semibold text-sm transition"
-            onClick={() => alert("Clear results feature coming soon!")}
+            className="flex items-center gap-2 px-4 py-2 border border-red-500/70 hover:border-red-500 text-red-400 hover:text-red-300 rounded-lg font-semibold text-sm transition font-poppins"
+            onClick={() => setShowConfirmModal(true)}
+            disabled={loading}
           >
-            <Trash2 size={16} /> Clear Results
+            <Trash2 size={16} /> {loading ? "Clearing..." : "Clear Results"}
           </button>
         </div>
 
-        {/* Loading / Error / Empty states */}
         {loading ? (
           <p className="text-center text-white/70 font-poppins">
             Loading previous results...
@@ -132,7 +214,26 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                   Result #{index + 1}
                 </h3>
 
-                {/* User Answers */}
+                {resItem.grades && Object.keys(resItem.grades).length > 0 && (
+                  <div className="mb-5 font-poppins">
+                    <h4 className="font-semibold mb-2 text-blue-200 font-poppins">
+                      Your Grades
+                    </h4>
+                    <div className="bg-blue-950/30 p-4 rounded-lg border border-blue-400/10 text-sm grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 font-poppins">
+                      {Object.entries(resItem.grades).map(([subject, grade]) => (
+                        <div
+                          key={subject}
+                          className="flex justify-between items-center bg-blue-900/20 px-3 py-2 rounded-lg border border-blue-400/10"
+                        >
+                          <span className="text-blue-100 font-medium">{subject}</span>
+                          <span className="text-white font-semibold">{grade}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Your Previous Answer */}
                 <div className="mb-5 font-poppins">
                   <h4 className="font-semibold mb-2 text-blue-200 font-poppins">
                     Your Previous Answer
@@ -155,18 +256,19 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                   </div>
                 </div>
 
-                {/* Recommendations */}
+                {/* Recommended Programs */}
                 <div className="font-poppins">
                   <h4 className="font-semibold mb-3 text-blue-200 font-poppins">
                     Recommended Programs
                   </h4>
                   {resItem.results && resItem.results.length > 0 ? (
                     <div className="overflow-x-auto rounded-lg border border-blue-400/20 font-poppins">
-                      <table className="w-full min-w-[600px] sm:min-w-full text-left border-collapse text-xs sm:text-sm font-poppins">
-                        <thead className="bg-blue-950/40 border-b border-blue-400/30 font-semibold text-white whitespace-nowrap">
+                      <table className="w-full min-w-[700px] sm:min-w-full text-left border-collapse text-xs sm:text-sm font-poppins">
+                        <thead className="bg-blue-950/40 border-b border-blue-400/30 font-semibold text-white whitespace-nowrap font-poppins">
                           <tr>
                             <th className="py-2 px-3">Logo</th>
                             <th className="py-2 px-3">School Name</th>
+                            <th className="py-2 px-3">Program / Course Name</th>
                             <th className="py-2 px-3">Location</th>
                             <th className="py-2 px-3">School Type</th>
                             <th className="py-2 px-3">Tuition Fee</th>
@@ -177,13 +279,10 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                           {resItem.results.map((r, i) => (
                             <tr
                               key={i}
-                              className={`border-b border-blue-400/10 hover:bg-blue-950/20 transition font-medium ${
-                                i % 2 === 0
-                                  ? "bg-blue-900/10"
-                                  : "bg-blue-900/5"
+                              className={`border-b border-blue-400/10 hover:bg-blue-950/20 transition font-medium font-poppins ${
+                                i % 2 === 0 ? "bg-blue-900/10" : "bg-blue-900/5"
                               }`}
                             >
-                              {/* Logo */}
                               <td className="py-2 px-3">
                                 <div className="flex items-center justify-center bg-white p-1 rounded-md w-10 h-10 sm:w-14 sm:h-14 border border-blue-400/30 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
                                   <img
@@ -196,32 +295,23 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                                   />
                                 </div>
                               </td>
-
-                              {/* School Name */}
                               <td className="py-2 px-3 font-semibold text-blue-100 whitespace-normal break-words">
                                 {r.school || "-"}
                               </td>
-
-                              {/* Location */}
+                              <td className="py-2 px-3 text-blue-200 whitespace-normal break-words">
+                                {r.program || r.course || "N/A"}
+                              </td>
                               <td className="py-2 px-3 whitespace-normal break-words">
                                 {r.location || "-"}
                               </td>
-
-                              {/* School Type */}
                               <td className="py-2 px-3 capitalize">
                                 {r.school_type || "-"}
                               </td>
-
-                              {/* Tuition Fee */}
                               <td className="py-2 px-3 font-semibold text-blue-200">
                                 {getTuitionDisplay(r.tuition_per_semester)}
                               </td>
-
-                              {/* Board Passing Rate */}
                               <td className="py-2 px-3">
-                                {getBoardPassingRateDisplay(
-                                  r.board_passing_rate
-                                )}
+                                {getBoardPassingRateDisplay(r.board_passing_rate)}
                               </td>
                             </tr>
                           ))}
@@ -238,8 +328,19 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
             ))}
           </div>
         )}
+
+        {/* 🧩 Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={handleClearResults}
+          title="Clear All Results?"
+          message="Are you sure you want to delete all previous results? This action cannot be undone."
+          confirmText="Yes, Clear"
+          cancelText="Cancel"
+        />
       </div>
     </div>,
-    document.body // ✅ renders at the root of the DOM
+    document.body
   );
 }

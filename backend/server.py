@@ -7,12 +7,12 @@ from pymongo import MongoClient
 MONGO_URI = "mongodb+srv://felixxbuan:QodcG7NvTkttyTUB@cluster0.poimocp.mongodb.net/"
 client = MongoClient(MONGO_URI)
 db = client["unifinder"]
-collection = db["school_strengths"]  # 👈 Target collection for your new JSON
+collection = db["grade_profiles"]  # 👈 Target collection for your new JSON
 
 # -------------------------------
 # Load JSON file
 # -------------------------------
-json_file = "school_strengths.json"
+json_file = "grade_profiles.json"
 
 try:
     with open(json_file, "r", encoding="utf-8") as f:
@@ -35,7 +35,7 @@ if isinstance(data, list):
         doc.pop("_id", None)  # remove existing _id to avoid duplication errors
         documents.append(doc)
 elif isinstance(data, dict):
-    # JSON is a dictionary (e.g., { "School Name": {details...}, ... })
+    # JSON is a dictionary (e.g., { "Course Name": {details...}, ... })
     for name, details in data.items():
         doc = {"name": name}
         doc.update(details)

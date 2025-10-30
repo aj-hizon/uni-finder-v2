@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Heart, MapPin, DollarSign, School, Search, HelpCircle } from "lucide-react"
+import { Heart, MapPin, DollarSign, School, Search, HelpCircle, Award } from "lucide-react"
 import Navbar from "../components/Navbar"
 
 function UniFinder() {
@@ -155,17 +155,17 @@ function UniFinder() {
   const search = async () => {
   setLoading(true);
 
-  const payload = { answers, school_type: schoolType, locations };
+  const payload = { answers, school_type: schoolType, locations, grades };
   if (schoolType === "private") payload.max_budget = maxBudget;
 
-  const token = localStorage.getItem("token"); // ✅ get token saved from login
+  const token = localStorage.getItem("token"); 
 
   try {
     const response = await fetch("http://127.0.0.1:8000/search", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }), // ✅ add Authorization header
+        ...(token && { Authorization: `Bearer ${token}` }), 
       },
       body: JSON.stringify(payload),
     });
@@ -189,32 +189,42 @@ function UniFinder() {
   }
 };
 
+const [grades, setGrades] = useState({
+  math: "",
+  science: "",
+  english: "",
+  filipino: "",
+  social: ""
+});
 
 
 
 
 const ProgressBar = () => {
   const steps = [
-    { id: 1, label: "Questions", icon: <HelpCircle size={24} className="text-red-400" /> },
-    { id: 2, label: "School Type", icon: <School size={24} className="text-green-400" /> },
-    { id: 3, label: "Location", icon: <MapPin size={24} className="text-yellow-400" /> },
+    { id: 1, label: "Grades", icon: <Award size={24} className="text-green-400" /> },
+    { id: 2, label: "Questions", icon: <HelpCircle size={24} className="text-purple-500" /> },
+    { id: 3, label: "School Type", icon: <School size={24} className="text-yellow-400" /> },
+    { id: 4, label: "Location", icon: <MapPin size={24} className="text-red-400" /> },
   ];
+
 
   let progressPercent = 0;
 
-  if (step === 1) {
-    if (currentQuestionIndex === 0) {
-      progressPercent = 0;
-    } else {
-      progressPercent =
-        (currentQuestionIndex / (questions.length - 1)) *
-        (100 / (steps.length - 1));
-    }
-  } else if (step === 2) {
-    progressPercent = 100 / (steps.length - 1);
-  } else if (step === 3) {
-    progressPercent = 100;
-  }
+if (step === 1) {
+  progressPercent = 0;
+} else if (step === 2) {
+  const totalQuestions = 5;
+  const sectionBase = 100 / (steps.length - 1); // distance between circles
+  const questionProgress = currentQuestionIndex / totalQuestions;
+  progressPercent = sectionBase * (1 + questionProgress); // start at step 2's circle
+} else if (step === 3) {
+  progressPercent = (2 / (steps.length - 1)) * 100;
+} else if (step === 4) {
+  progressPercent = 100;
+}
+
+
 
   return (
     <div className="w-full max-w-3xl mx-auto mt-12">
@@ -277,14 +287,165 @@ const ProgressBar = () => {
 
         <div className="max-w-5xl mx-auto space-y-8">
 
-          <ProgressBar />
 
-        {/* Step 1 */}
+<ProgressBar />
+
+{/* STEP 1: GRADES */}
 {step === 1 && (
+  <>
+    <div className="bg-gradient-to-br from-blue-900/40 via-blue-800/30 to-blue-900/40 backdrop-blur-2xl 
+                    border border-white/20 rounded-3xl p-8 sm:p-10 md:p-12 shadow-[0_8px_40px_rgba(0,0,0,0.4)] 
+                    space-y-8 w-full max-w-6xl mx-auto transition-all duration-500">
+
+      {/* Header */}
+<div className="flex items-center gap-5">
+  <div className="bg-gradient-to-tr from-blue-400/30 to-cyan-300/30 p-3 rounded-2xl">
+    <School className="text-blue-300 w-8 h-8 sm:w-9 sm:h-9" />
+  </div>
+
+  <div>
+    {/* Title with refined fluid scaling */}
+    <h2 className="text-[clamp(1.3rem,2.4vw,1.9rem)] font-semibold font-inter text-white tracking-tight leading-tight">
+      Enter & Customize Your Core Grades
+    </h2>
+
+    {/* Subtext with gentle fluid scaling */}
+    <p className="text-[clamp(0.8rem,1.6vw,1rem)] text-white/60 font-poppins mt-2 leading-relaxed max-w-2xl">
+      Input your latest grades — edit names or add up to 
+      <span className="text-blue-300 font-medium"> 8 subjects</span>.
+    </p>
+  </div>
+</div>
+
+
+      {/* Subjects Grid (2 Columns) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {Object.entries(grades).map(([subject, grade], index) => (
+          <div
+            key={index}
+            className="group relative flex items-center justify-between gap-3 bg-blue-300/10 
+                       border border-white/10 backdrop-blur-md rounded-2xl px-5 py-4 
+                       hover:border-blue-400/40 hover:bg-blue-200/20 transition-all duration-300"
+          >
+            {/* Subject Input */}
+            <div className="flex-1">
+              <input
+                type="text"
+                value={subject}
+                onChange={(e) => {
+                  const newName = e.target.value;
+                  setGrades((prev) => {
+                    const updated = { ...prev };
+                    const oldValue = updated[subject];
+                    delete updated[subject];
+                    updated[newName] = oldValue;
+                    return updated;
+                  });
+                }}
+                placeholder="Subject name"
+                className="w-full bg-transparent border-b border-white/20 focus:border-blue-300 
+                           text-white placeholder-white/40 text-base font-poppins py-1 
+                           outline-none transition-all duration-200"
+              />
+            </div>
+
+            {/* Grade Input */}
+            <div className="w-24">
+              <input
+                type="number"
+                inputMode="numeric"
+                min="0"
+                max="100"
+                value={grade}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  if (val === "") {
+                    setGrades((prev) => ({ ...prev, [subject]: "" }));
+                    return;
+                  }
+                  let num = parseInt(val);
+                  if (isNaN(num)) num = "";
+                  if (num > 100) num = 100;
+                  if (num < 0) num = 0;
+                  setGrades((prev) => ({ ...prev, [subject]: num }));
+                }}
+                placeholder="0–100"
+                className="w-full text-center bg-transparent border-b border-white/20 focus:border-blue-300 
+                           text-white placeholder-white/40 text-base font-poppins py-1 outline-none 
+                           appearance-none [&::-webkit-outer-spin-button]:appearance-none 
+                           [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+
+            {/* Delete Button */}
+            {Object.keys(grades).length > 1 && (
+              <button
+                onClick={() => {
+                  setGrades((prev) => {
+                    const updated = { ...prev };
+                    delete updated[subject];
+                    return updated;
+                  });
+                }}
+                className="text-red-400/80 hover:text-red-300 transition text-lg font-semibold"
+                title="Remove subject"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Add Subject Button */}
+      {Object.keys(grades).length < 8 && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => {
+              const newSubjectName = `Subject ${Object.keys(grades).length + 1}`;
+              setGrades((prev) => ({ ...prev, [newSubjectName]: "" }));
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-400/10 border border-blue-300/20 
+                       hover:bg-blue-400/20 text-blue-300 font-medium font-poppins text-sm sm:text-base 
+                       transition-all duration-200 shadow-sm hover:shadow-blue-400/20"
+          >
+            <span className="text-lg leading-none">＋</span>
+            Add Subject
+          </button>
+        </div>
+      )}
+    </div>
+
+    {/* Continue Button */}
+<div className="flex justify-end mt-8">
+  <button
+    onClick={() => setStep(2)}
+    disabled={
+      Object.values(grades).some((g) => g === "" || isNaN(g)) ||
+      Object.keys(grades).length === 0
+    }
+    className="px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 
+               rounded-lg sm:rounded-xl 
+               text-sm sm:text-base md:text-lg 
+               font-poppins text-white 
+               border border-white/20 backdrop-blur-sm transition
+               hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+    style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
+  >
+    Continue
+  </button>
+</div>
+
+  </>
+)}
+
+
+
+{/* STEP 2: QUESTIONS */}
+{step === 2 && (
   <>
     {(() => {
       const q = questions[currentQuestionIndex];
-
       const hasSelectedChoices = answers[q.key].length > 0;
       const hasTypedCustom = answers.custom[q.key].trim() !== "";
 
@@ -295,50 +456,43 @@ const ProgressBar = () => {
                      rounded-2xl sm:rounded-3xl 
                      border border-white/20 shadow-lg space-y-6 sm:space-y-8"
         >
-          {/* question title and instructions */}
-         <div className="flex flex-col gap-1.5 sm:gap-2">
-  <div className="flex items-center gap-2 sm:gap-3">
-    <div className="bg-blue-300/20 p-2.5 sm:p-3 rounded-md">
-      <Heart className="text-blue-300 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
-    </div>
-    <h2 className="text-lg sm:text-xl md:text-2xl font-semibold font-inter text-white">
-      {q.title}
-    </h2>
-  </div>
-
-  <p className="text-white/70 font-poppins text-sm sm:text-base leading-relaxed ml-1 sm:ml-2">
-    Choose up to <span className="font-semibold text-blue-300">2</span> that best describe your interests,
-    or type your own answers freely if none of the choices fit.
-  </p>
-</div>
-
+          {/* Question Header */}
+          <div className="flex flex-col gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="bg-blue-300/20 p-2.5 sm:p-3 rounded-md">
+                <Heart className="text-blue-300 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+              </div>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold font-inter text-white">
+                {q.title}
+              </h2>
+            </div>
+            <p className="text-white/70 font-poppins text-sm sm:text-base leading-relaxed ml-1 sm:ml-2">
+              Choose up to <span className="font-semibold text-blue-300">2</span> that best describe your interests,
+              or type your own answers freely if none of the choices fit.
+            </p>
+          </div>
 
           {/* Choices */}
           <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
             {q.choices.map((choice) => {
               const isSelected = answers[q.key].includes(choice);
-              const isDisabled = hasTypedCustom; // disable if typing
-
+              const isDisabled = hasTypedCustom;
               return (
                 <div
-        key={choice}
-        onClick={() =>
-          !isDisabled && handleCheckboxChange(q.key, choice)
-        }
-        className={`
-          px-2 py-1 sm:px-3 sm:py-1.5 md:px-3.5 md:py-1.5
-          rounded-full text-xs sm:text-sm md:text-base
-          font-medium cursor-pointer transition
-          ${isSelected
-            ? "bg-blue-500/40 border-2 border-blue-300 shadow-[0_0_8px_rgba(147,197,253,0.6)]"
-            : "bg-white/10 border border-blue-400 hover:bg-blue-900/30"}
-          backdrop-blur-sm text-white font-poppins
-          ${isDisabled ? "opacity-40 cursor-not-allowed" : ""}
-        `}
-      >
-        {choice}
-      </div>
-
+                  key={choice}
+                  onClick={() =>
+                    !isDisabled && handleCheckboxChange(q.key, choice)
+                  }
+                  className={`px-2 py-1 sm:px-3 sm:py-1.5 md:px-3.5 md:py-1.5 rounded-full text-xs sm:text-sm md:text-base font-medium cursor-pointer transition ${
+                    isSelected
+                      ? "bg-blue-500/40 border-2 border-blue-300 shadow-[0_0_8px_rgba(147,197,253,0.6)]"
+                      : "bg-white/10 border border-blue-400 hover:bg-blue-900/30"
+                  } backdrop-blur-sm text-white font-poppins ${
+                    isDisabled ? "opacity-40 cursor-not-allowed" : ""
+                  }`}
+                >
+                  {choice}
+                </div>
               );
             })}
           </div>
@@ -356,13 +510,13 @@ const ProgressBar = () => {
             onChange={(e) =>
               !hasSelectedChoices && handleCustomChange(q.key, e.target.value)
             }
-            disabled={hasSelectedChoices} // disable input if choices picked
+            disabled={hasSelectedChoices}
           />
         </div>
       );
     })()}
 
-    {/* Buttons */}
+    {/* Navigation Buttons */}
     <div className="flex justify-between mt-4">
       {currentQuestionIndex > 0 ? (
         <button
@@ -378,7 +532,18 @@ const ProgressBar = () => {
           Back
         </button>
       ) : (
-        <span></span>
+        <button
+          className="px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 
+                     rounded-lg sm:rounded-xl 
+                     text-sm sm:text-base md:text-lg 
+                     font-poppins text-white 
+                     border border-white/20 backdrop-blur-sm transition
+                     hover:border-blue-300"
+          style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
+          onClick={() => setStep(1)}
+        >
+          Back to Grades
+        </button>
       )}
 
       {currentQuestionIndex < questions.length - 1 ? (
@@ -407,7 +572,7 @@ const ProgressBar = () => {
                      border border-white/20 backdrop-blur-sm transition
                      hover:border-blue-300"
           style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
-          onClick={() => setStep(2)}
+          onClick={() => setStep(3)}
         >
           Continue
         </button>
@@ -416,13 +581,9 @@ const ProgressBar = () => {
   </>
 )}
 
-
-
-
-{/* Step 2 */}
-{step === 2 && (
+{/* STEP 3: SCHOOL TYPE */}
+{step === 3 && (
   <>
-    {/* School Type Card */}
     <div className="bg-blue-800/20 backdrop-blur-md border border-white/20 
                     rounded-lg sm:rounded-xl shadow-lg 
                     p-5 sm:p-6 md:p-8 max-w-3xl mx-auto">
@@ -440,7 +601,6 @@ const ProgressBar = () => {
         </div>
       </div>
 
-      {/* Options */}
       <div className="space-y-2 sm:space-y-3">
         {[{ value: "public", label: "Public Schools", desc: "State-funded, affordable options" },
           { value: "private", label: "Private Schools", desc: "Privately-run with more variety" },
@@ -459,10 +619,10 @@ const ProgressBar = () => {
                 value={value}
                 checked={schoolType === value}
                 onChange={(e) => {
-                  const selected = e.target.value
-                  setSchoolType(selected)
+                  const selected = e.target.value;
+                  setSchoolType(selected);
                   if (selected === "private") {
-                    setLocations(prev => prev.filter(loc => ["Angeles", "San Fernando"].includes(loc)))
+                    setLocations(prev => prev.filter(loc => ["Angeles", "San Fernando"].includes(loc)));
                   }
                 }}
                 className="w-4 h-4 sm:w-5 sm:h-5 opacity-0 cursor-pointer"
@@ -476,7 +636,6 @@ const ProgressBar = () => {
       </div>
     </div>
 
-    {/* Tuition Budget (Only for private) */}
     {schoolType === "private" && (
       <div className="bg-blue-800/20 backdrop-blur-md border border-white/20 
                       rounded-lg sm:rounded-xl shadow-lg 
@@ -517,7 +676,6 @@ const ProgressBar = () => {
       </div>
     )}
 
-    {/* Buttons */}
     <div className="flex justify-between mt-4 sm:mt-5 pb-5 sm:pb-6 max-w-3xl mx-auto">
       <button
         className="px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 
@@ -527,7 +685,7 @@ const ProgressBar = () => {
                    border border-white/20 backdrop-blur-sm transition
                    hover:border-blue-300"
         style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
-        onClick={() => setStep(1)}
+        onClick={() => setStep(2)}
       >
         Back
       </button>
@@ -540,7 +698,7 @@ const ProgressBar = () => {
                    border border-white/20 backdrop-blur-sm transition
                    hover:border-blue-300"
         style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
-        onClick={() => setStep(3)}
+        onClick={() => setStep(4)}
       >
         Next
       </button>
@@ -548,15 +706,12 @@ const ProgressBar = () => {
   </>
 )}
 
-
-
-{/* Step 3 */}
-{step === 3 && (
+{/* STEP 4: LOCATION */}
+{step === 4 && (
   <>
     <div className="bg-blue-800/20 backdrop-blur-md border border-white/20 
                     rounded-xl sm:rounded-2xl shadow-lg 
                     p-6 sm:p-8 md:p-10">
-      {/* Title */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         <div className="bg-blue-300/20 p-2 sm:p-3 rounded-lg">
           <MapPin className="text-blue-300 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
@@ -571,37 +726,31 @@ const ProgressBar = () => {
         </div>
       </div>
 
-      {/* Location pills */}
       <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
         {filteredLocations.map((loc) => {
           const isSelected = locations.includes(loc);
           return (
-           <div
-        key={loc}
-        onClick={() => {
-          setLocations((prev) =>
-            isSelected ? prev.filter((l) => l !== loc) : [...prev, loc]
-          );
-        }}
-        className={`
-          px-3 py-1.5 sm:px-5 sm:py-2 md:px-6 md:py-3
-          rounded-full 
-          text-sm sm:text-base md:text-lg 
-          font-medium font-poppins cursor-pointer transition
-          ${isSelected
-            ? "bg-blue-500/40 border-2 sm:border-4 border-blue-300 shadow-[0_0_8px_rgba(147,197,253,0.6)]"
-            : "bg-white/10 border border-blue-400 opacity-80 hover:opacity-100 hover:bg-blue-900/30"}
-          backdrop-blur-sm text-white
-        `}
-      >
-        {loc}
-      </div>
+            <div
+              key={loc}
+              onClick={() => {
+                setLocations((prev) =>
+                  isSelected ? prev.filter((l) => l !== loc) : [...prev, loc]
+                );
+              }}
+              className={`px-3 py-1.5 sm:px-5 sm:py-2 md:px-6 md:py-3 rounded-full 
+                        text-sm sm:text-base md:text-lg font-medium font-poppins cursor-pointer transition ${
+                          isSelected
+                            ? "bg-blue-500/40 border-2 sm:border-4 border-blue-300 shadow-[0_0_8px_rgba(147,197,253,0.6)]"
+                            : "bg-white/10 border border-blue-400 opacity-80 hover:opacity-100 hover:bg-blue-900/30"
+                        } backdrop-blur-sm text-white`}
+            >
+              {loc}
+            </div>
           );
         })}
       </div>
     </div>
 
-    {/* Buttons */}
     <div className="flex justify-between mt-4 sm:mt-6 mb-10 sm:mb-12">
       <button
         className="px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 
@@ -611,7 +760,7 @@ const ProgressBar = () => {
                    border border-white/20 backdrop-blur-sm transition
                    hover:border-blue-300"
         style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
-        onClick={() => setStep(2)}
+        onClick={() => setStep(3)}
       >
         Back
       </button>

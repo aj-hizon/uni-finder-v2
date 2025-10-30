@@ -1,0 +1,275 @@
+[
+  {
+    "category": "Business",
+    "grade_weights": {
+      "Mathematics": 0.9,
+      "Science": 0.7,
+      "English": 0.85,
+      "Filipino": 0.7,
+      "Social Studies": 0.8,
+      "ICT": 0.75,
+      "Statistics": 0.9,
+      "PE": 0.6
+    }
+  },
+  {
+    "category": "Social Science",
+    "grade_weights": {
+      "Mathematics": 0.6,
+      "Science": 0.6,
+      "English": 0.85,
+      "Filipino": 0.8,
+      "Social Studies": 1.0,
+      "ICT": 0.6,
+      "Statistics": 0.7,
+      "PE": 0.6
+    }
+  },
+  {
+    "category": "Computing Studies",
+    "grade_weights": {
+      "Mathematics": 0.95,
+      "Science": 0.8,
+      "English": 0.7,
+      "Filipino": 0.6,
+      "Social Studies": 0.6,
+      "ICT": 1.0,
+      "Statistics": 0.9,
+      "PE": 0.5
+    }
+  },
+  {
+    "category": "Accounting",
+    "grade_weights": {
+      "Mathematics": 0.95,
+      "Science": 0.6,
+      "English": 0.8,
+      "Filipino": 0.7,
+      "Social Studies": 0.7,
+      "ICT": 0.7,
+      "Statistics": 1.0,
+      "PE": 0.5
+    }
+  },
+  {
+    "category": "Engineering",
+    "grade_weights": {
+      "Mathematics": 1.0,
+      "Science": 0.95,
+      "English": 0.7,
+      "Filipino": 0.6,
+      "Social Studies": 0.6,
+      "ICT": 0.9,
+      "Statistics": 0.9,
+      "PE": 0.6
+    }
+  },
+  {
+    "category": "Education",
+    "grade_weights": {
+      "Mathematics": 0.7,
+      "Science": 0.7,
+      "English": 0.9,
+      "Filipino": 0.9,
+      "Social Studies": 0.85,
+      "ICT": 0.7,
+      "Statistics": 0.7,
+      "PE": 0.8
+    }
+  },
+  {
+    "category": "Hospitality and Service",
+    "grade_weights": {
+      "Mathematics": 0.7,
+      "Science": 0.6,
+      "English": 0.9,
+      "Filipino": 0.85,
+      "Social Studies": 0.8,
+      "ICT": 0.7,
+      "Statistics": 0.6,
+      "PE": 0.9
+    }
+  },
+  {
+    "category": "Maritime",
+    "grade_weights": {
+      "Mathematics": 0.9,
+      "Science": 0.9,
+      "English": 0.75,
+      "Filipino": 0.6,
+      "Social Studies": 0.6,
+      "ICT": 0.7,
+      "Statistics": 0.7,
+      "PE": 0.8
+    }
+  },
+  {
+    "category": "Language",
+    "grade_weights": {
+      "Mathematics": 0.5,
+      "Science": 0.5,
+      "English": 1.0,
+      "Filipino": 1.0,
+      "Social Studies": 0.8,
+      "ICT": 0.6,
+      "Statistics": 0.5,
+      "PE": 0.6
+    }
+  },
+  {
+    "category": "Medicine",
+    "grade_weights": {
+      "Mathematics": 0.85,
+      "Science": 1.0,
+      "English": 0.8,
+      "Filipino": 0.7,
+      "Social Studies": 0.7,
+      "ICT": 0.6,
+      "Statistics": 0.8,
+      "PE": 0.7
+    }
+  },
+  {
+    "category": "Communication",
+    "grade_weights": {
+      "Mathematics": 0.6,
+      "Science": 0.6,
+      "English": 1.0,
+      "Filipino": 0.9,
+      "Social Studies": 0.85,
+      "ICT": 0.6,
+      "Statistics": 0.6,
+      "PE": 0.7
+    }
+  },
+  {
+    "category": "Architecture",
+    "grade_weights": {
+      "Mathematics": 0.95,
+      "Science": 0.8,
+      "English": 0.75,
+      "Filipino": 0.6,
+      "Social Studies": 0.7,
+      "ICT": 0.8,
+      "Statistics": 0.8,
+      "PE": 0.6
+    }
+  },
+  {
+    "category": "Science",
+    "grade_weights": {
+      "Mathematics": 0.9,
+      "Science": 1.0,
+      "English": 0.75,
+      "Filipino": 0.7,
+      "Social Studies": 0.6,
+      "ICT": 0.7,
+      "Statistics": 0.9,
+      "PE": 0.6
+    }
+  },
+  {
+    "category": "Mathematics",
+    "grade_weights": {
+      "Mathematics": 1.0,
+      "Science": 0.9,
+      "English": 0.75,
+      "Filipino": 0.6,
+      "Social Studies": 0.6,
+      "ICT": 0.8,
+      "Statistics": 1.0,
+      "PE": 0.5
+    }
+  },
+  {
+    "category": "Sports",
+    "grade_weights": {
+      "Mathematics": 0.6,
+      "Science": 0.7,
+      "English": 0.7,
+      "Filipino": 0.7,
+      "Social Studies": 0.7,
+      "ICT": 0.6,
+      "Statistics": 0.6,
+      "PE": 1.0
+    }
+  },
+  {
+    "category": "Logistics",
+    "grade_weights": {
+      "Mathematics": 0.9,
+      "Science": 0.7,
+      "English": 0.8,
+      "Filipino": 0.7,
+      "Social Studies": 0.8,
+      "ICT": 0.8,
+      "Statistics": 0.9,
+      "PE": 0.6
+    }
+  },
+  {
+    "category": "Industrial Technology",
+    "grade_weights": {
+      "Mathematics": 0.9,
+      "Science": 0.85,
+      "English": 0.75,
+      "Filipino": 0.6,
+      "Social Studies": 0.6,
+      "ICT": 0.9,
+      "Statistics": 0.7,
+      "PE": 0.7
+    }
+  },
+  {
+    "category": "Arts and Design",
+    "grade_weights": {
+      "Mathematics": 0.5,
+      "Science": 0.5,
+      "English": 0.9,
+      "Filipino": 0.8,
+      "Social Studies": 0.8,
+      "ICT": 0.7,
+      "Statistics": 0.5,
+      "PE": 0.8
+    }
+  },
+  {
+    "category": "Arts and Culture",
+    "grade_weights": {
+      "Mathematics": 0.5,
+      "Science": 0.5,
+      "English": 0.9,
+      "Filipino": 0.9,
+      "Social Studies": 0.9,
+      "ICT": 0.6,
+      "Statistics": 0.6,
+      "PE": 0.7
+    }
+  },
+  {
+    "category": "Arts and History",
+    "grade_weights": {
+      "Mathematics": 0.6,
+      "Science": 0.6,
+      "English": 0.85,
+      "Filipino": 0.9,
+      "Social Studies": 1.0,
+      "ICT": 0.6,
+      "Statistics": 0.6,
+      "PE": 0.6
+    }
+  },
+  {
+    "category": "Agriculture and Fisheries",
+    "grade_weights": {
+      "Mathematics": 0.8,
+      "Science": 0.9,
+      "English": 0.7,
+      "Filipino": 0.7,
+      "Social Studies": 0.7,
+      "ICT": 0.7,
+      "Statistics": 0.8,
+      "PE": 0.8
+    }
+  }
+]

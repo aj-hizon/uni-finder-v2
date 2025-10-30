@@ -1,26 +1,25 @@
 import os
 from typing import List, Optional
-
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from fastapi import Depends
-from typing import Optional
-from db import db  
-from recommendation import recommend
-from fastapi import Depends, HTTPException, Request
-from db import db
-from datetime import datetime
+from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.hash import bcrypt
-from datetime import datetime, timedelta
-
-from fastapi import Depends
+from fastapi import FastAPI, HTTPException, Query, Depends, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
+from dotenv import load_dotenv
 
+from db import db
+from recommendation import recommend
+
+# --- Auth Setup ---
 security = HTTPBearer()
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key_here")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
@@ -36,22 +35,14 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-# Load env
-load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key_here")  # Add this in .env later
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
-
-
+# --- App Setup ---
 app = FastAPI(
     title="UniFinder API",
     description="API for UniFinder, providing program recommendations and data.",
     version="1.0.0",
 )
 
-# --- Configuration ---
-# 🌍 CORS Setup
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 app.add_middleware(
@@ -62,6 +53,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
@@ -69,61 +61,65 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-# --- Pydantic Models ---
+# --- Request Models ---
 class SearchRequest(BaseModel):
-    """
-    Model for the request body of the main search endpoint.
-    """
     answers: dict
+    grades: Optional[dict] = None  # ✅ NEW: user’s grades
     school_type: str = "any"
     locations: Optional[List[str]] = None
     max_budget: Optional[float] = None
 
-# --- API Endpoints ---
 
-@app.get("/programs/all", summary="Get all programs from the database")
-async def get_all_programs():
-    try:
-        collection = db["all_programs"]
-        data = list(collection.find({}, {"_id": 0}))
-        return JSONResponse(content=data)
-    except Exception as e:
-        print(f"Error fetching all programs: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error while fetching all programs.")
-
+# --- Optional Authentication ---
 async def get_current_user_optional(request: Request):
     token = request.headers.get("Authorization")
     if not token:
-        return None  # no token, allow guest access
-
+        return None
     try:
         token = token.replace("Bearer ", "")
-        payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=["HS256"])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return {"email": payload.get("sub")}
     except JWTError:
-        return None  # invalid token, treat as guest
-    
-@app.post("/search", summary="Get program recommendations based on user answers and filters")
+        return None
+
+
+# --- Routes ---
+@app.get("/programs/all", summary="Get all programs")
+async def get_all_programs():
+    try:
+        data = list(db["all_programs"].find({}, {"_id": 0}))
+        return JSONResponse(content=data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching all programs: {e}")
+
+
+@app.post("/search", summary="Get program recommendations")
 async def search(
     request_data: SearchRequest,
-    current_user: Optional[dict] = Depends(get_current_user_optional)  # <-- optional auth
+    current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
     user_email = current_user["email"] if current_user else "guest"
     print(f"📥 Received search request from {user_email}")
 
-    # 1️⃣ Run the recommendation engine
+    # 🧠 Use grades from request (or possibly user profile in future)
+    user_grades = request_data.grades
+
+    # Call recommendation logic
     result = recommend(
         answers=request_data.answers,
+        user_grades=user_grades,
         school_type=request_data.school_type,
         locations=request_data.locations,
         max_budget=request_data.max_budget,
     )
 
-    # 2️⃣ Save user answers + results (only if logged in)
+    # ✅ Save history for logged-in users (including grades + subjects)
     if current_user:
         db["user_recommendations"].insert_one({
             "user_email": user_email,
             "answers": request_data.answers,
+            "grades": request_data.grades,              # ✅ save grades dictionary
+            "subjects": list(request_data.grades.keys()) if request_data.grades else [],  # ✅ extract subjects
             "filters": {
                 "school_type": request_data.school_type,
                 "locations": request_data.locations,
@@ -137,15 +133,16 @@ async def search(
             "created_at": datetime.utcnow(),
         })
 
-    # 3️⃣ Return the recommendation results to frontend
     return result
+
+
 
 @app.get("/recommendation-history")
 async def get_recommendation_history(current_user: dict = Depends(get_current_user)):
-    data = list(db["user_recommendations"].find(
-        {"user_email": current_user["email"]},
-        {"_id": 0}
-    ).sort("created_at", -1))
+    data = list(
+        db["user_recommendations"].find({"user_email": current_user["email"]}, {"_id": 0})
+        .sort("created_at", -1)
+    )
     return data
 
 
