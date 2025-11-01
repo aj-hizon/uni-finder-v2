@@ -298,101 +298,106 @@ if (step === 1) {
                     space-y-8 w-full max-w-6xl mx-auto transition-all duration-500">
 
       {/* Header */}
-<div className="flex items-center gap-5">
-  <div className="bg-gradient-to-tr from-blue-400/30 to-cyan-300/30 p-3 rounded-2xl">
-    <School className="text-blue-300 w-8 h-8 sm:w-9 sm:h-9" />
-  </div>
+      <div className="flex items-center gap-5">
+        <div className="bg-gradient-to-tr from-blue-400/30 to-cyan-300/30 p-3 rounded-2xl">
+          <School className="text-blue-300 w-8 h-8 sm:w-9 sm:h-9" />
+        </div>
 
-  <div>
-    {/* Title with refined fluid scaling */}
-    <h2 className="text-[clamp(1.3rem,2.4vw,1.9rem)] font-semibold font-inter text-white tracking-tight leading-tight">
-      Enter & Customize Your Core Grades
-    </h2>
-
-    {/* Subtext with gentle fluid scaling */}
-    <p className="text-[clamp(0.8rem,1.6vw,1rem)] text-white/60 font-poppins mt-2 leading-relaxed max-w-2xl">
-      Input your latest grades — edit names or add up to 
-      <span className="text-blue-300 font-medium"> 8 subjects</span>.
-    </p>
-  </div>
-</div>
-
+        <div>
+          <h2 className="text-[clamp(1.3rem,2.4vw,1.9rem)] font-semibold font-inter text-white tracking-tight leading-tight">
+            Enter & Customize Your Core Grades
+          </h2>
+          <p className="text-[clamp(0.8rem,1.6vw,1rem)] text-white/60 font-poppins mt-2 leading-relaxed max-w-2xl">
+            Input your latest grades — edit names or add up to 
+            <span className="text-blue-300 font-medium"> 8 subjects</span>.
+          </p>
+        </div>
+      </div>
 
       {/* Subjects Grid (2 Columns) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {Object.entries(grades).map(([subject, grade], index) => (
           <div
             key={index}
-            className="group relative flex items-center justify-between gap-3 bg-blue-300/10 
+            className="group relative flex flex-col gap-3 bg-blue-300/10 
                        border border-white/10 backdrop-blur-md rounded-2xl px-5 py-4 
                        hover:border-blue-400/40 hover:bg-blue-200/20 transition-all duration-300"
           >
-            {/* Subject Input */}
-            <div className="flex-1">
-              <input
-                type="text"
-                value={subject}
-                onChange={(e) => {
-                  const newName = e.target.value;
-                  setGrades((prev) => {
-                    const updated = { ...prev };
-                    const oldValue = updated[subject];
-                    delete updated[subject];
-                    updated[newName] = oldValue;
-                    return updated;
-                  });
-                }}
-                placeholder="Subject name"
-                className="w-full bg-transparent border-b border-white/20 focus:border-blue-300 
-                           text-white placeholder-white/40 text-base font-poppins py-1 
-                           outline-none transition-all duration-200"
-              />
+            {/* Labels Row */}
+            <div className="flex justify-between text-white/70 text-sm font-poppins mb-1">
+              <label>Subject</label>
+              <label className="pr-8">Grade</label>
             </div>
 
-            {/* Grade Input */}
-            <div className="w-24">
-              <input
-                type="number"
-                inputMode="numeric"
-                min="0"
-                max="100"
-                value={grade}
-                onChange={(e) => {
-                  let val = e.target.value;
-                  if (val === "") {
-                    setGrades((prev) => ({ ...prev, [subject]: "" }));
-                    return;
-                  }
-                  let num = parseInt(val);
-                  if (isNaN(num)) num = "";
-                  if (num > 100) num = 100;
-                  if (num < 0) num = 0;
-                  setGrades((prev) => ({ ...prev, [subject]: num }));
-                }}
-                placeholder="0–100"
-                className="w-full text-center bg-transparent border-b border-white/20 focus:border-blue-300 
-                           text-white placeholder-white/40 text-base font-poppins py-1 outline-none 
-                           appearance-none [&::-webkit-outer-spin-button]:appearance-none 
-                           [&::-webkit-inner-spin-button]:appearance-none"
-              />
-            </div>
+            {/* Inputs Row */}
+            <div className="flex items-center justify-between gap-3">
+              {/* Subject Input */}
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    setGrades((prev) => {
+                      const updated = { ...prev };
+                      const oldValue = updated[subject];
+                      delete updated[subject];
+                      updated[newName] = oldValue;
+                      return updated;
+                    });
+                  }}
+                  placeholder="Enter subject name"
+                  className="w-full bg-transparent border-b border-white/20 focus:border-blue-300 
+                             text-white placeholder-white/40 text-base font-poppins py-1 
+                             outline-none transition-all duration-200"
+                />
+              </div>
 
-            {/* Delete Button */}
-            {Object.keys(grades).length > 1 && (
-              <button
-                onClick={() => {
-                  setGrades((prev) => {
-                    const updated = { ...prev };
-                    delete updated[subject];
-                    return updated;
-                  });
-                }}
-                className="text-red-400/80 hover:text-red-300 transition text-lg font-semibold"
-                title="Remove subject"
-              >
-                ✕
-              </button>
-            )}
+              {/* Grade Input */}
+              <div className="w-24">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  max="100"
+                  value={grade}
+                  onChange={(e) => {
+                    let val = e.target.value;
+                    if (val === "") {
+                      setGrades((prev) => ({ ...prev, [subject]: "" }));
+                      return;
+                    }
+                    let num = parseInt(val);
+                    if (isNaN(num)) num = "";
+                    if (num > 100) num = 100;
+                    if (num < 0) num = 0;
+                    setGrades((prev) => ({ ...prev, [subject]: num }));
+                  }}
+                  placeholder="0–100"
+                  className="w-full text-center bg-transparent border-b border-white/20 focus:border-blue-300 
+                             text-white placeholder-white/40 text-base font-poppins py-1 outline-none 
+                             appearance-none [&::-webkit-outer-spin-button]:appearance-none 
+                             [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+
+              {/* Delete Button */}
+              {Object.keys(grades).length > 1 && (
+                <button
+                  onClick={() => {
+                    setGrades((prev) => {
+                      const updated = { ...prev };
+                      delete updated[subject];
+                      return updated;
+                    });
+                  }}
+                  className="text-red-400/80 hover:text-red-300 transition text-lg font-semibold"
+                  title="Remove subject"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -417,27 +422,27 @@ if (step === 1) {
     </div>
 
     {/* Continue Button */}
-<div className="flex justify-end mt-8">
-  <button
-    onClick={() => setStep(2)}
-    disabled={
-      Object.values(grades).some((g) => g === "" || isNaN(g)) ||
-      Object.keys(grades).length === 0
-    }
-    className="px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 
-               rounded-lg sm:rounded-xl 
-               text-sm sm:text-base md:text-lg 
-               font-poppins text-white 
-               border border-white/20 backdrop-blur-sm transition
-               hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
-    style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
-  >
-    Continue
-  </button>
-</div>
-
+    <div className="flex justify-end mt-8">
+      <button
+        onClick={() => setStep(2)}
+        disabled={
+          Object.values(grades).some((g) => g === "" || isNaN(g)) ||
+          Object.keys(grades).length === 0
+        }
+        className="px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 
+                   rounded-lg sm:rounded-xl 
+                   text-sm sm:text-base md:text-lg 
+                   font-poppins text-white 
+                   border border-white/20 backdrop-blur-sm transition
+                   hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
+      >
+        Continue
+      </button>
+    </div>
   </>
 )}
+
 
 
 
