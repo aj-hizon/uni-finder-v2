@@ -317,54 +317,60 @@ if (step === 1) {
     </div>
   </div>
 
-  {/* Info Button */}
-  <button
-    onClick={() => setShowNote(true)}
-    className="text-white/70 hover:text-blue-300 transition-colors duration-300 
-               flex items-center gap-2 text-sm sm:text-base font-poppins"
-    title="View note"
+ {/* Info Button */}
+<button
+  onClick={() => setShowNote(true)}
+  className="text-white/70 hover:text-blue-300 transition-colors duration-300 
+             flex items-center gap-2 text-sm sm:text-base font-poppins"
+  title="View note"
+>
+  {/* Icon first */}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.8}
+    stroke="currentColor"
+    className="w-6 h-6"
   >
-    <span className="hidden sm:inline">Important Note</span>
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.8}
-      stroke="currentColor"
-      className="w-6 h-6"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-  </button>
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+  <span className="hidden sm:inline">Important Note</span>
+</button>
 
-  {/* Popup Modal */}
-  {showNote && (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-blue-900/70 to-blue-800/70 border border-white/20 
-                      rounded-2xl shadow-2xl p-6 sm:p-8 w-[90%] sm:w-[500px] text-center 
-                      animate-in fade-in duration-200">
-        <h3 className="text-white font-semibold text-lg sm:text-xl mb-3 font-inter">
-          Why grades aren’t everything
-        </h3>
-        <p className="text-white/70 font-poppins leading-relaxed text-[0.9rem] sm:text-base">
-          Your grades don’t define your potential — they simply guide the system in understanding 
-          your strengths. A low grade in one subject doesn’t mean you can’t thrive in that field. 
-          What truly matters is your passion, effort, and curiosity to keep learning.
-        </p>
-        <button
-          onClick={() => setShowNote(false)}
-          className="mt-6 px-5 py-2.5 rounded-lg bg-blue-500/20 hover:bg-blue-400/30 border border-blue-300/30 
-                     text-blue-200 font-medium font-poppins transition-all duration-300"
-        >
-          Got it
-        </button>
-      </div>
-    </div>
-  )}
+{/* Popup Modal */}
+{showNote && (
+  <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div
+      className="bg-gradient-to-br from-blue-950/90 via-blue-900/85 to-blue-950/90 
+                 border border-blue-300/20 rounded-[2rem] shadow-2xl 
+                 p-6 sm:p-8 w-[90%] sm:w-[500px] text-center 
+                 animate-in fade-in duration-200"
+    >
+      <h3 className="text-white font-semibold text-lg sm:text-xl mb-3 font-inter">
+        Why grades aren’t everything
+      </h3>
+      <p className="text-white/70 font-poppins leading-relaxed text-[0.9rem] sm:text-base">
+        Your grades don’t define your potential — they simply guide the system in understanding 
+        your strengths. A low grade in one subject doesn’t mean you can’t thrive in that field. 
+        What truly matters is your passion, effort, and curiosity to keep learning.
+      </p>
+      <button
+        onClick={() => setShowNote(false)}
+        className="mt-6 px-5 py-2.5 rounded-lg bg-blue-500/20 hover:bg-blue-400/30 
+                   border border-blue-300/30 text-blue-200 font-medium font-poppins 
+                   transition-all duration-300"
+      >
+        Got it
+      </button>
+    </div> 
+  </div>
+)}
+
 </div>
 
 

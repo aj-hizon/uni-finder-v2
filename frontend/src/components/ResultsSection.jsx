@@ -167,9 +167,10 @@ if (activeFilter === "board" && subOption) {
     return tuition >= min && tuition <= max;
   });
 } else if (activeFilter === "school_type" && subOption) {
-  displayedResults = displayedResults.filter(
-    (item) => item.school_type?.toLowerCase() === subOption
-  );
+    displayedResults = displayedResults.filter((s) =>
+      s.school_type?.toLowerCase().includes(subOption.toLowerCase())
+    );
+
 } else if (activeFilter === "location" && subOption) {
   if (subOption.toLowerCase() === "other") {
     const knownLocations = [
