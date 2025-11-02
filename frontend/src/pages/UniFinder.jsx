@@ -308,7 +308,7 @@ if (step === 1) {
             Enter & Customize Your Core Grades
           </h2>
           <p className="text-[clamp(0.8rem,1.6vw,1rem)] text-white/60 font-poppins mt-2 leading-relaxed max-w-2xl">
-            Input your latest grades — edit names or add up to 
+            Input your latest grades — edit subjects or add up to 
             <span className="text-blue-300 font-medium"> 8 subjects</span>.
           </p>
         </div>
@@ -373,7 +373,7 @@ if (step === 1) {
                     if (num < 0) num = 0;
                     setGrades((prev) => ({ ...prev, [subject]: num }));
                   }}
-                  placeholder="0–100"
+                  placeholder="ex.100"
                   className="w-full text-center bg-transparent border-b border-white/20 focus:border-blue-300 
                              text-white placeholder-white/40 text-base font-poppins py-1 outline-none 
                              appearance-none [&::-webkit-outer-spin-button]:appearance-none 
