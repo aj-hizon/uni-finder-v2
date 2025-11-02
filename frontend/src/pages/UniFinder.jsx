@@ -7,6 +7,8 @@ function UniFinder() {
   const [step, setStep] = useState(1)
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false);
+  const [showNote, setShowNote] = useState(false);
+
 
 
   const [answers, setAnswers] = useState({
@@ -296,23 +298,76 @@ if (step === 1) {
     <div className="bg-gradient-to-br from-blue-900/40 via-blue-800/30 to-blue-900/40 backdrop-blur-2xl 
                     border border-white/20 rounded-3xl p-8 sm:p-10 md:p-12 shadow-[0_8px_40px_rgba(0,0,0,0.4)] 
                     space-y-8 w-full max-w-6xl mx-auto transition-all duration-500">
+{/* Header */}
+<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  {/* Left Side: Icon + Title */}
+  <div className="flex items-center gap-4">
+    <div className="bg-gradient-to-tr from-blue-400/30 to-cyan-300/30 p-3 sm:p-4 rounded-2xl shadow-inner">
+      <School className="text-blue-300 w-7 h-7 sm:w-8 sm:h-8" />
+    </div>
 
-      {/* Header */}
-      <div className="flex items-center gap-5">
-        <div className="bg-gradient-to-tr from-blue-400/30 to-cyan-300/30 p-3 rounded-2xl">
-          <School className="text-blue-300 w-8 h-8 sm:w-9 sm:h-9" />
-        </div>
+    <div>
+      <h2 className="text-[clamp(1.3rem,2.2vw,1.9rem)] font-semibold font-inter text-white tracking-tight leading-snug">
+        Enter & Customize Your Core Grades
+      </h2>
+      <p className="text-[clamp(0.8rem,1.5vw,1rem)] text-white/60 font-poppins mt-1.5 leading-relaxed max-w-2xl">
+        Input your latest grades — edit subjects or add up to
+        <span className="text-blue-300 font-medium"> 8 subjects</span>.
+      </p>
+    </div>
+  </div>
 
-        <div>
-          <h2 className="text-[clamp(1.3rem,2.4vw,1.9rem)] font-semibold font-inter text-white tracking-tight leading-tight">
-            Enter & Customize Your Core Grades
-          </h2>
-          <p className="text-[clamp(0.8rem,1.6vw,1rem)] text-white/60 font-poppins mt-2 leading-relaxed max-w-2xl">
-            Input your latest grades — edit subjects or add up to 
-            <span className="text-blue-300 font-medium"> 8 subjects</span>.
-          </p>
-        </div>
+  {/* Info Button */}
+  <button
+    onClick={() => setShowNote(true)}
+    className="text-white/70 hover:text-blue-300 transition-colors duration-300 
+               flex items-center gap-2 text-sm sm:text-base font-poppins"
+    title="View note"
+  >
+    <span className="hidden sm:inline">Important Note</span>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.8}
+      stroke="currentColor"
+      className="w-6 h-6"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  </button>
+
+  {/* Popup Modal */}
+  {showNote && (
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
+      <div className="bg-gradient-to-br from-blue-900/70 to-blue-800/70 border border-white/20 
+                      rounded-2xl shadow-2xl p-6 sm:p-8 w-[90%] sm:w-[500px] text-center 
+                      animate-in fade-in duration-200">
+        <h3 className="text-white font-semibold text-lg sm:text-xl mb-3 font-inter">
+          Why grades aren’t everything
+        </h3>
+        <p className="text-white/70 font-poppins leading-relaxed text-[0.9rem] sm:text-base">
+          Your grades don’t define your potential — they simply guide the system in understanding 
+          your strengths. A low grade in one subject doesn’t mean you can’t thrive in that field. 
+          What truly matters is your passion, effort, and curiosity to keep learning.
+        </p>
+        <button
+          onClick={() => setShowNote(false)}
+          className="mt-6 px-5 py-2.5 rounded-lg bg-blue-500/20 hover:bg-blue-400/30 border border-blue-300/30 
+                     text-blue-200 font-medium font-poppins transition-all duration-300"
+        >
+          Got it
+        </button>
       </div>
+    </div>
+  )}
+</div>
+
+
 
       {/* Subjects Grid (2 Columns) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
