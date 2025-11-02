@@ -485,18 +485,25 @@ medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
 
             return (
               <div
-  key={index}
-  className={`rounded-2xl bg-blue-800/30 backdrop-blur-md border shadow-md transition-all duration-300 cursor-pointer hover:shadow-xl p-6 w-full sm:w-[95%] md:w-[90%] lg:w-[85%] mx-auto ${isExpanded ? "scale-[1.02]" : ""}`}
-  onClick={() => setExpandedIndex(isExpanded ? null : index)}
->
-
-                {/* Rank + Header */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-white font-bold text-lg">
-                    <span className="text-2xl">{medal}</span>
-                    <span>{rank <= 3 ? ["1st","2nd","3rd"][rank-1] : `${rank}th`} Place</span>
-                  </div>
-                </div>
+    key={index}
+    className={`rounded-2xl bg-blue-800/30 backdrop-blur-md border shadow-md transition-all duration-300 cursor-pointer hover:shadow-xl p-6 w-full sm:w-[95%] md:w-[90%] lg:w-[85%] mx-auto ${
+      isExpanded ? "scale-[1.02]" : ""
+    }`}
+    onClick={() => setExpandedIndex(isExpanded ? null : index)}
+  >
+    {/* ✅ Rank + Header (hidden when filtering by school_type) */}
+    {activeFilter !== "school_type" && (
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2 text-white font-bold text-lg">
+          {medal && <span className="text-2xl">{medal}</span>}
+          <span>
+            {rank <= 3
+              ? ["1st", "2nd", "3rd"][rank - 1]
+              : `${rank}th`} Place
+          </span>
+        </div>
+      </div>
+    )}
 
                 {/* Card Content */}
                 <div className="flex items-center gap-4 mb-3 w-full px-1 sm:px-3">
