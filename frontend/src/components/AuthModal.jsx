@@ -19,25 +19,48 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
     setFullName("");
   }, [defaultIsLogin]);
 
-  if (!isOpen) return (
-    <>
-      {/* Render popup even if modal is closed */}
-      {popup && (
-        <PopupMessage
-          type={popup.type}
-          message={popup.message}
-          onClose={() => setPopup(null)}
-        />
-      )}
-    </>
-  );
+  if (!isOpen)
+    return (
+      <>
+        {popup && (
+          <PopupMessage
+            type={popup.type}
+            message={popup.message}
+            onClose={() => setPopup(null)}
+          />
+        )}
+      </>
+    );
+
+  // ✅ Password strength validator
+  const isPasswordStrong = (password) => {
+    const pattern =
+      /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>/?]).{8,}$/;
+    return pattern.test(password);
+  };
+
+  // ✅ Email validator
+  const isEmailValid = (email) => {
+    return email.includes("@") && email.endsWith(".com");
+  };
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // ✅ Check email format for both login and register
+      if (!isEmailValid(email)) {
+        setPopup({
+          type: "error",
+          message: "Please enter a valid email with '@' and ending in '.com'.",
+        });
+        setLoading(false);
+        return;
+      }
+
       if (isLogin) {
+        // ✅ LOGIN
         const res = await axios.post("http://127.0.0.1:8000/login", {
           email,
           password,
@@ -47,15 +70,26 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
         localStorage.setItem("token", access_token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        // ✅ Set popup before closing modal
         setPopup({ type: "success", message: "Login successful!" });
-        setTimeout(onClose, 300); // small delay so popup shows cleanly
+        setTimeout(onClose, 300);
       } else {
+        // ✅ REGISTER
+        if (!isPasswordStrong(password)) {
+          setPopup({
+            type: "error",
+            message:
+              "Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 symbol.",
+          });
+          setLoading(false);
+          return;
+        }
+
         await axios.post("http://127.0.0.1:8000/register", {
           email,
           password,
           full_name: fullName,
         });
+
         setPopup({
           type: "success",
           message: "Registration successful! You can now log in.",
@@ -176,7 +210,6 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
         </div>
       </div>
 
-      {/* ✅ Render popup always (so it stays visible even if modal closes) */}
       {popup && (
         <PopupMessage
           type={popup.type}
