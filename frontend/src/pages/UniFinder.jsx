@@ -495,7 +495,7 @@ if (step === 1) {
                    text-sm sm:text-base md:text-lg 
                    font-poppins text-white 
                    border border-white/20 backdrop-blur-sm transition
-                   hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                   hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed mb-10"
         style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
       >
         Continue
