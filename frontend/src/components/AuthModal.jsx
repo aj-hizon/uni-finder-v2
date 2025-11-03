@@ -115,8 +115,8 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
       >
         <div
           className="relative w-full max-w-lg rounded-3xl shadow-2xl 
-                      bg-blue-800/40 backdrop-blur-md
-                      text-white p-10 flex flex-col items-center font-[Poppins]"
+                      bg-[#002766] backdrop-blur-md
+                      text-white p-10 flex flex-col items-center font-Poppins"
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -126,7 +126,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
             <X size={24} />
           </button>
 
-          <h1 className="text-base font-semibold leading-tight mb-4 tracking-wide text-blue-200">
+          <h1 className="text-base font-semibold leading-tight mb-4 tracking-wide text-white font-poppins">
             {isLogin ? "Login" : "Register"}
           </h1>
 
@@ -182,7 +182,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
             </button>
           </form>
 
-          <div className="text-center mt-6 text-sm text-gray-300">
+          <div className="text-center mt-6 text-sm text-white">
             {isLogin ? (
               <p>
                 Don’t have an account?{" "}
@@ -200,7 +200,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
                 <button
                   type="button"
                   onClick={() => setIsLogin(true)}
-                  className="text-blue-400 hover:underline"
+                  className="text-white hover:underline"
                 >
                   Login
                 </button>

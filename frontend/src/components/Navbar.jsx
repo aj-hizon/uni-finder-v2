@@ -26,7 +26,8 @@ function Navbar() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState(true);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [showPreviousResultsModal, setShowPreviousResultsModal] = useState(false);
+  const [showPreviousResultsModal, setShowPreviousResultsModal] =
+    useState(false);
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -121,7 +122,6 @@ function Navbar() {
       {/* 🔹 Navbar */}
       <div className="w-full flex justify-center absolute top-3 xs:top-4 sm:top-5 md:top-6 left-0 z-50">
         <nav className="flex items-center justify-between w-[95%] xs:w-[90%] sm:w-[85%] md:w-[80%] lg:w-[70%] xl:w-[60%] px-3 sm:px-5 py-2 sm:py-3 rounded-full bg-[#002766] backdrop-blur-md shadow-lg text-white">
-
           <Link to="/" className="flex items-center space-x-2 text-white">
             <GraduationCap className="w-6 xs:w-7 h-6 xs:h-7 text-white drop-shadow-lg" />
             <span className="text-sm xs:text-base sm:text-lg md:text-2xl font-bold text-white tracking-wide">
@@ -144,7 +144,11 @@ function Navbar() {
                     <motion.div
                       layoutId="tracker"
                       className="absolute inset-0 rounded-full bg-blue-500/40"
-                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 25,
+                      }}
                     />
                   )}
                   <Link
@@ -165,9 +169,13 @@ function Navbar() {
                 onClick={() => setShowAccountMenu((prev) => !prev)}
                 className="flex items-center space-x-2 text-white px-2 sm:px-3 py-1 rounded-full font-semibold text-sm sm:text-base"
               >
-                <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                <motion.div
+                  whileHover={{ scale: 1.2 }}
+                  className="cursor-pointer"
+                >
+                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </motion.div>
               </motion.button>
-
               <AnimatePresence>
                 {showAccountMenu && (
                   <motion.div
@@ -190,7 +198,7 @@ function Navbar() {
                           <LogIn className="w-5 h-5" /> Login
                         </button>
                         <button
-                          className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-blue-800/60"
+                          className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-blue-800/60 "
                           onClick={() => {
                             setAuthMode(false);
                             setShowAuthModal(true);
@@ -284,14 +292,16 @@ function Navbar() {
                 <div className="flex justify-center gap-4 mt-6">
                   <button
                     onClick={() => {
-                      showLogoutConfirm ? handleLogout() : handleDeleteAccount();
+                      showLogoutConfirm
+                        ? handleLogout()
+                        : handleDeleteAccount();
                     }}
                     className={`px-5 py-2 rounded-lg font-medium backdrop-blur-md border transition ${
                       showLogoutConfirm
                         ? "bg-red-600/40 border-red-500/40 hover:bg-red-600/60"
                         : "bg-red-600/40 border-red-500/40 hover:bg-red-600/60"
                     }`}
-                  > 
+                  >
                     Yes
                   </button>
                   <button
