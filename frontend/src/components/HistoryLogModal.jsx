@@ -4,6 +4,7 @@ import { X, Trash2 } from "lucide-react";
 export default function HistoryLogModal({ isOpen, onClose }) {
   const [user, setUser] = useState(null);
   const [logs, setLogs] = useState([]);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // Format timestamp in PH timezone
   const formatPHDate = (utcDate) => {
@@ -26,7 +27,7 @@ export default function HistoryLogModal({ isOpen, onClose }) {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:8000/history-log", {
+      const res = await fetch(`${API_BASE_URL}/history-log`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -43,7 +44,7 @@ export default function HistoryLogModal({ isOpen, onClose }) {
     if (!window.confirm("Are you sure you want to clear your history?")) return;
 
     try {
-      const res = await fetch("http://localhost:8000/clear-history", {
+      const res = await fetch(`${API_BASE_URL}/clear-history`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -58,7 +59,7 @@ export default function HistoryLogModal({ isOpen, onClose }) {
 
   useEffect(() => {
     if (isOpen) fetchHistory();
-  }, [isOpen]);
+  }, [isOpen, fetchHistory]);
 
   if (!isOpen) return null;
 

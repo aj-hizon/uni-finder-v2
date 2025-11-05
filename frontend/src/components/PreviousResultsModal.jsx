@@ -59,6 +59,7 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -74,7 +75,7 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
       setError("");
 
       try {
-        const res = await fetch("http://localhost:8000/previous-results", {
+        const res = await fetch(`${API_BASE_URL}/previous-results`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -110,7 +111,7 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
       setLoading(true);
       setError("");
 
-      const res = await fetch("http://localhost:8000/clear-results", {
+      const res = await fetch(`${API_BASE_URL}/clear-results`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

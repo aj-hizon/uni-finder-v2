@@ -33,7 +33,7 @@ const valueOf = (obj, aliases) => {
   return null;
 };
 
-const renderValue = (v) => { 
+const renderValue = (v) => {
   if (!hasValue(v)) return "N/A";
   if (Array.isArray(v)) return v.join(", ");
   if (typeof v === "object") return JSON.stringify(v);
@@ -155,43 +155,87 @@ export default function CompareProgram() {
       );
     }
   } else if (activeFilter === "unirank") {
-  // --- UniRank Sorting (School-level grouping) ---
-  // Step 1: Group programs by school
-  const grouped = {};
-  normalizedSchools.forEach((item) => {
-    if (!grouped[item.school]) grouped[item.school] = [];
-    grouped[item.school].push(item);
-  });
+    // --- UniRank Sorting (School-level grouping) ---
+    // Step 1: Group programs by school
+    const grouped = {};
+    normalizedSchools.forEach((item) => {
+      if (!grouped[item.school]) grouped[item.school] = [];
+      grouped[item.school].push(item);
+    });
 
-  // Step 2: Sort schools by their UniRank
-  const sortedSchools = Object.keys(grouped).sort((a, b) => {
-    const rankA = parseInt(grouped[a][0].uni_rank) || 999;
-    const rankB = parseInt(grouped[b][0].uni_rank) || 999;
-    return rankA - rankB;
-  });
+    // Step 2: Sort schools by their UniRank
+    const sortedSchools = Object.keys(grouped).sort((a, b) => {
+      const rankA = parseInt(grouped[a][0].uni_rank) || 999;
+      const rankB = parseInt(grouped[b][0].uni_rank) || 999;
+      return rankA - rankB;
+    });
 
-  // Step 3: Flatten programs but grouped per school
-  displayedResults = sortedSchools.flatMap((school) => grouped[school]);
-}
-
+    // Step 3: Flatten programs but grouped per school
+    displayedResults = sortedSchools.flatMap((school) => grouped[school]);
+  }
 
   const rows = [
-    { label: "Program", key: "program", icon: <BookOpen className="w-4 h-4" /> },
-    { label: "Category", key: "category", icon: <ListChecks className="w-4 h-4" /> },
-    { label: "Type", key: "school_type", icon: <Building2 className="w-4 h-4" /> },
-    { label: "Location", key: "location", icon: <MapPin className="w-4 h-4" /> },
-    { label: "Admission Requirements", key: "admission_requirements", icon: <FileText className="w-4 h-4" /> },
-    { label: "Grade Requirements", key: "grade_requirements", icon: <ListChecks className="w-4 h-4" /> },
-    { label: "Other Requirements", key: "school_requirements", icon: <FileText className="w-4 h-4" /> },
-    { label: "Tuition / Semester", key: "tuition_per_semester", icon: <DollarSign className="w-4 h-4" /> },
-    { label: "Tuition / Year", key: "tuition_annual", icon: <DollarSign className="w-4 h-4" /> },
-    { label: "Tuition Notes", key: "tuition_notes", icon: <FileText className="w-4 h-4" /> },
-    { label: "Board Passing Rate", key: "board_passing_rate", icon: <GraduationCap className="w-4 h-4" /> },
-    { label: "Website", key: "school_website", icon: <Globe className="w-4 h-4" />, isLink: true },
-  ];
-
-  const softGradients = [
-    "from-[#1e3a8a]/40 via-[#0ea5e9]/25 to-[#99f6e4]/10"
+    {
+      label: "Program",
+      key: "program",
+      icon: <BookOpen className="w-4 h-4" />,
+    },
+    {
+      label: "Category",
+      key: "category",
+      icon: <ListChecks className="w-4 h-4" />,
+    },
+    {
+      label: "Type",
+      key: "school_type",
+      icon: <Building2 className="w-4 h-4" />,
+    },
+    {
+      label: "Location",
+      key: "location",
+      icon: <MapPin className="w-4 h-4" />,
+    },
+    {
+      label: "Admission Requirements",
+      key: "admission_requirements",
+      icon: <FileText className="w-4 h-4" />,
+    },
+    {
+      label: "Grade Requirements",
+      key: "grade_requirements",
+      icon: <ListChecks className="w-4 h-4" />,
+    },
+    {
+      label: "Other Requirements",
+      key: "school_requirements",
+      icon: <FileText className="w-4 h-4" />,
+    },
+    {
+      label: "Tuition / Semester",
+      key: "tuition_per_semester",
+      icon: <DollarSign className="w-4 h-4" />,
+    },
+    {
+      label: "Tuition / Year",
+      key: "tuition_annual",
+      icon: <DollarSign className="w-4 h-4" />,
+    },
+    {
+      label: "Tuition Notes",
+      key: "tuition_notes",
+      icon: <FileText className="w-4 h-4" />,
+    },
+    {
+      label: "Board Passing Rate",
+      key: "board_passing_rate",
+      icon: <GraduationCap className="w-4 h-4" />,
+    },
+    {
+      label: "Website",
+      key: "school_website",
+      icon: <Globe className="w-4 h-4" />,
+      isLink: true,
+    },
   ];
 
   return (
@@ -202,177 +246,188 @@ export default function CompareProgram() {
       <Navbar />
 
       {/* Sorting & Filtering */}
-<div className="flex flex-wrap justify-center items-center gap-3 text-white mt-10 mb-10 sm:mt-16 sm:mb-12">
+      <div className="flex flex-wrap justify-center items-center gap-3 text-white mt-10 mb-10 sm:mt-16 sm:mb-12">
+        {(() => {
+          const selectClass =
+            "appearance-none bg-transparent !bg-blue-800/60 !backdrop-blur-md hover:!bg-blue-800/30 border border-white/30 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 pr-8 sm:pr-10 text-white transition-colors duration-200 focus:outline-none text-xs sm:text-sm md:text-base font-medium shrink";
 
- {(() => {
-    const selectClass =
-      "appearance-none bg-transparent !bg-blue-800/60 !backdrop-blur-md hover:!bg-blue-800/30 border border-white/30 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 pr-8 sm:pr-10 text-white transition-colors duration-200 focus:outline-none text-xs sm:text-sm md:text-base font-medium shrink";
+          const selectStyle = {
+            WebkitAppearance: "none",
+            MozAppearance: "none",
+            appearance: "none",
+            backgroundColor: "rgba(30, 58, 138, 0.2)",
+            backdropFilter: "blur(12px)",
+            color: "white",
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 7l4.5 4.5L14.5 7'/%3E%3C/svg%3E\")",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "right 0.6rem center", // keep arrow aligned
+            backgroundSize: "0.9rem", // original arrow size preserved
+            borderColor: "rgba(255, 255, 255, 0.3)",
+          };
 
-    const selectStyle = {
-      WebkitAppearance: "none",
-      MozAppearance: "none",
-      appearance: "none",
-      backgroundColor: "rgba(30, 58, 138, 0.2)",
-      backdropFilter: "blur(12px)",
-      color: "white",
-      backgroundImage:
-        "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 7l4.5 4.5L14.5 7'/%3E%3C/svg%3E\")",
-      backgroundRepeat: "no-repeat",
-      backgroundPosition: "right 0.6rem center", // keep arrow aligned
-      backgroundSize: "0.9rem", // original arrow size preserved
-      borderColor: "rgba(255, 255, 255, 0.3)",
-    };
+          const optionStyle = {
+            backgroundColor: "rgba(30, 64, 175, 0.9)",
+            color: "white",
+          };
 
-    const optionStyle = {
-      backgroundColor: "rgba(30, 64, 175, 0.9)",
-      color: "white",
-    };
+          return (
+            <>
+              {/* Main Filter Selector */}
+              <select
+                value={activeFilter}
+                onChange={(e) => {
+                  setActiveFilter(e.target.value);
+                  setSubOption("");
+                }}
+                className={selectClass}
+                style={selectStyle}
+              >
+                <option style={optionStyle} value="">
+                  Select Filter / Sort
+                </option>
+                <option style={optionStyle} value="board">
+                  Board Passing Rate
+                </option>
+                <option style={optionStyle} value="tuition">
+                  Tuition Fee
+                </option>
+                <option style={optionStyle} value="school_type">
+                  School Type
+                </option>
+                <option style={optionStyle} value="location">
+                  Location
+                </option>
+                <option style={optionStyle} value="unirank">
+                  Top-Ranked University
+                </option>
+              </select>
 
-    return (
-      <>
-        {/* Main Filter Selector */}
-        <select
-          value={activeFilter}
-          onChange={(e) => {
-            setActiveFilter(e.target.value);
-            setSubOption("");
-          }}
-          className={selectClass}
-          style={selectStyle}
-        >
-          <option style={optionStyle} value="">
-            Select Filter / Sort
-          </option>
-          <option style={optionStyle} value="board">
-            Board Passing Rate
-          </option>
-          <option style={optionStyle} value="tuition">
-            Tuition Fee
-          </option>
-          <option style={optionStyle} value="school_type">
-            School Type
-          </option>
-          <option style={optionStyle} value="location">
-            Location
-          </option>
-          <option style={optionStyle} value="unirank">
-            Top-Ranked University
-          </option>
-        </select>
+              {/* Sub-options */}
+              {activeFilter === "board" && (
+                <select
+                  value={subOption}
+                  onChange={(e) => setSubOption(e.target.value)}
+                  className={selectClass}
+                  style={selectStyle}
+                >
+                  <option style={optionStyle} value="">
+                    Select Board Rate
+                  </option>
+                  <option style={optionStyle} value="board_high">
+                    High → Low
+                  </option>
+                  <option style={optionStyle} value="board_low">
+                    Low → High
+                  </option>
+                </select>
+              )}
 
-        {/* Sub-options */}
-        {activeFilter === "board" && (
-          <select
-            value={subOption}
-            onChange={(e) => setSubOption(e.target.value)}
-            className={selectClass}
-            style={selectStyle}
-          >
-            <option style={optionStyle} value="">
-              Select Board Rate
-            </option>
-            <option style={optionStyle} value="board_high">
-              High → Low
-            </option>
-            <option style={optionStyle} value="board_low">
-              Low → High
-            </option>
-          </select>
-        )}
+              {activeFilter === "tuition" && (
+                <select
+                  value={subOption}
+                  onChange={(e) => setSubOption(e.target.value)}
+                  className={selectClass}
+                  style={selectStyle}
+                >
+                  <option style={optionStyle} value="">
+                    Select Tuition Range
+                  </option>
+                  <option style={optionStyle} value="0-3000">
+                    ₱0 - ₱3,000
+                  </option>
+                  <option style={optionStyle} value="3000-5000">
+                    ₱3,000 - ₱5,000
+                  </option>
+                  <option style={optionStyle} value="5000-8000">
+                    ₱5,000 - ₱8,000
+                  </option>
+                  <option style={optionStyle} value="8000-12000">
+                    ₱8,000 - ₱12,000
+                  </option>
+                  <option style={optionStyle} value="12000+">
+                    ₱12,000+
+                  </option>
+                </select>
+              )}
 
-        {activeFilter === "tuition" && (
-          <select
-            value={subOption}
-            onChange={(e) => setSubOption(e.target.value)}
-            className={selectClass}
-            style={selectStyle}
-          >
-            <option style={optionStyle} value="">
-              Select Tuition Range
-            </option>
-            <option style={optionStyle} value="0-3000">
-              ₱0 - ₱3,000
-            </option>
-            <option style={optionStyle} value="3000-5000">
-              ₱3,000 - ₱5,000
-            </option>
-            <option style={optionStyle} value="5000-8000">
-              ₱5,000 - ₱8,000
-            </option>
-            <option style={optionStyle} value="8000-12000">
-              ₱8,000 - ₱12,000
-            </option>
-            <option style={optionStyle} value="12000+">
-              ₱12,000+
-            </option>
-          </select>
-        )}
+              {activeFilter === "school_type" && (
+                <select
+                  value={subOption}
+                  onChange={(e) => setSubOption(e.target.value)}
+                  className={selectClass}
+                  style={selectStyle}
+                >
+                  <option style={optionStyle} value="">
+                    Select School Type
+                  </option>
+                  <option style={optionStyle} value="public">
+                    Public
+                  </option>
+                  <option style={optionStyle} value="private">
+                    Private
+                  </option>
+                </select>
+              )}
 
-        {activeFilter === "school_type" && (
-          <select
-            value={subOption}
-            onChange={(e) => setSubOption(e.target.value)}
-            className={selectClass}
-            style={selectStyle}
-          >
-            <option style={optionStyle} value="">
-              Select School Type
-            </option>
-            <option style={optionStyle} value="public">
-              Public
-            </option>
-            <option style={optionStyle} value="private">
-              Private
-            </option>
-          </select>
-        )}
+              {activeFilter === "location" && (
+                <select
+                  value={subOption}
+                  onChange={(e) => setSubOption(e.target.value)}
+                  className={selectClass}
+                  style={selectStyle}
+                >
+                  <option style={optionStyle} value="">
+                    Select Location
+                  </option>
+                  <option style={optionStyle} value="Angeles">
+                    Angeles
+                  </option>
+                  <option style={optionStyle} value="San Fernando">
+                    San Fernando
+                  </option>
+                  <option style={optionStyle} value="Mabalacat">
+                    Mabalacat
+                  </option>
+                  <option style={optionStyle} value="Bacolor">
+                    Bacolor
+                  </option>
+                  <option style={optionStyle} value="Magalang">
+                    Magalang
+                  </option>
+                  <option style={optionStyle} value="Mexico">
+                    Mexico
+                  </option>
+                  <option style={optionStyle} value="Bulacan">
+                    Bulacan
+                  </option>
+                  <option style={optionStyle} value="Other">
+                    Other
+                  </option>
+                </select>
+              )}
 
-        {activeFilter === "location" && (
-          <select
-            value={subOption}
-            onChange={(e) => setSubOption(e.target.value)}
-            className={selectClass}
-            style={selectStyle}
-          >
-            <option style={optionStyle} value="">
-              Select Location
-            </option>
-            <option style={optionStyle} value="Angeles">Angeles</option>
-            <option style={optionStyle} value="San Fernando">San Fernando</option>
-            <option style={optionStyle} value="Mabalacat">Mabalacat</option>
-            <option style={optionStyle} value="Bacolor">Bacolor</option>
-            <option style={optionStyle} value="Magalang">Magalang</option>
-            <option style={optionStyle} value="Mexico">Mexico</option>
-            <option style={optionStyle} value="Bulacan">Bulacan</option>
-            <option style={optionStyle} value="Other">Other</option>
-          </select>
-        )}
+              {activeFilter === "unirank" && (
+                <div className="text-white text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-4 py-1.5 sm:py-2 !bg-blue-800/20 !backdrop-blur-md border border-white/30 rounded-full transition-colors duration-200 text-center shrink">
+                  Based on uniRank 2025
+                </div>
+              )}
 
-        {activeFilter === "unirank" && (
-          <div className="text-white text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-4 py-1.5 sm:py-2 !bg-blue-800/20 !backdrop-blur-md border border-white/30 rounded-full transition-colors duration-200 text-center shrink">
-            Based on uniRank 2025
-          </div>
-        )}
-
-        {(activeFilter || subOption) && (
-          <button
-            onClick={() => {
-              setActiveFilter("");
-              setSubOption("");
-            }}
-            className="!bg-red-600/40 hover:!bg-red-600/60 text-white text-xs sm:text-sm md:text-base font-medium px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shrink"
-          >
-            Clear
-          </button>
-        )}
-      </>
-    );
-  })()}
-</div>
-
-
-
-  
+              {(activeFilter || subOption) && (
+                <button
+                  onClick={() => {
+                    setActiveFilter("");
+                    setSubOption("");
+                  }}
+                  className="!bg-red-600/40 hover:!bg-red-600/60 text-white text-xs sm:text-sm md:text-base font-medium px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shrink"
+                >
+                  Clear
+                </button>
+              )}
+            </>
+          );
+        })()}
+      </div>
 
       {/* School Cards */}
       <div
@@ -388,62 +443,68 @@ export default function CompareProgram() {
       >
         {displayedResults.map((s, idx) => {
           // Compute rank properly (school-level rank for unirank)
-let rank;
+          let rank;
 
-// --- Normalize function to group PSU campuses under one rank ---
-const normalizeSchoolName = (name) => {
-  if (!name) return "";
-  const n = name.trim().toLowerCase();
-  if (n.startsWith("pampanga state university")) return "pampanga state university";
-  return n;
-};
+          // --- Normalize function to group PSU campuses under one rank ---
+          const normalizeSchoolName = (name) => {
+            if (!name) return "";
+            const n = name.trim().toLowerCase();
+            if (n.startsWith("pampanga state university"))
+              return "pampanga state university";
+            return n;
+          };
 
-if (activeFilter === "unirank") {
-  // Create a list of unique schools using normalized names
-  const uniqueSchools = [
-    ...new Set(displayedResults.map((r) => normalizeSchoolName(r.school))),
-  ];
+          if (activeFilter === "unirank") {
+            // Create a list of unique schools using normalized names
+            const uniqueSchools = [
+              ...new Set(
+                displayedResults.map((r) => normalizeSchoolName(r.school))
+              ),
+            ];
 
-  // Use normalized name for comparison so PSU campuses share one rank
-  const normalizedSchool = normalizeSchoolName(s.school);
-  rank = uniqueSchools.indexOf(normalizedSchool) + 1;
-} else {
-  rank = idx + 1;
-}
+            // Use normalized name for comparison so PSU campuses share one rank
+            const normalizedSchool = normalizeSchoolName(s.school);
+            rank = uniqueSchools.indexOf(normalizedSchool) + 1;
+          } else {
+            rank = idx + 1;
+          }
 
-// --- Medal visibility conditions ---
-const showMedal =
-  ((activeFilter === "board" && subOption) ||
-    activeFilter === "unirank" ||
-    (activeFilter === "tuition" && subOption)) &&
-  rank <= 3;
+          // --- Medal visibility conditions ---
+          const showMedal =
+            ((activeFilter === "board" && subOption) ||
+              activeFilter === "unirank" ||
+              (activeFilter === "tuition" && subOption)) &&
+            rank <= 3;
 
-// --- Medal colors (unchanged) ---
-const medalColors = {
-  1: "text-yellow-400 drop-shadow-[0_0_6px_rgba(255,215,0,0.7)]",
-  2: "text-gray-300 drop-shadow-[0_0_6px_rgba(200,200,200,0.6)]",
-  3: "text-amber-700 drop-shadow-[0_0_6px_rgba(205,127,50,0.6)]",
-};
-
+          // --- Medal colors (unchanged) ---
+          const medalColors = {
+            1: "text-yellow-400 drop-shadow-[0_0_6px_rgba(255,215,0,0.7)]",
+            2: "text-gray-300 drop-shadow-[0_0_6px_rgba(200,200,200,0.6)]",
+            3: "text-amber-700 drop-shadow-[0_0_6px_rgba(205,127,50,0.6)]",
+          };
 
           return (
             <div
-  key={idx}
-  className="bg-blue-800/30 backdrop-blur-md border border-white/30 rounded-3xl p-6 sm:p-8 shadow-lg hover:shadow-[0_0_25px_rgba(59,130,246,0.3)] transition-shadow duration-300 font-Poppins relative"
->
-
+              key={idx}
+              className="bg-blue-800/30 backdrop-blur-md border border-white/30 rounded-3xl p-6 sm:p-8 shadow-lg hover:shadow-[0_0_25px_rgba(59,130,246,0.3)] transition-shadow duration-300 font-Poppins relative"
+            >
               {showMedal && (
-  <div className="absolute top-3 left-3 flex items-center gap-2">
-    <Award
-      size={36}
-      className={`${medalColors[rank] || "text-gray-500"} drop-shadow-[0_0_12px_rgba(255,255,255,0.7)] animate-pulse`}
-    />
-    <span className="text-white font-semibold text-sm sm:text-base">
-      {rank === 1 ? "1st Place" : rank === 2 ? "2nd Place" : "3rd Place"}
-    </span>
-  </div>
-)}
-
+                <div className="absolute top-3 left-3 flex items-center gap-2">
+                  <Award
+                    size={36}
+                    className={`${
+                      medalColors[rank] || "text-gray-500"
+                    } drop-shadow-[0_0_12px_rgba(255,255,255,0.7)] animate-pulse`}
+                  />
+                  <span className="text-white font-semibold text-sm sm:text-base">
+                    {rank === 1
+                      ? "1st Place"
+                      : rank === 2
+                      ? "2nd Place"
+                      : "3rd Place"}
+                  </span>
+                </div>
+              )}
 
               <div className="flex flex-col items-center mb-6">
                 {hasValue(s.school_logo) && (

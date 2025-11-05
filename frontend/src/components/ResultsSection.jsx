@@ -59,6 +59,7 @@ function LocationMarker({ setPinnedLocation }) {
 
 function ResultsSection({ results, message }) {
   const navigate = useNavigate();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // States
   const [expandedIndex, setExpandedIndex] = useState(null);
@@ -105,7 +106,7 @@ const [subOption, setSubOption] = useState(""); // Sub-option selected (High-Low
 
   // Fetch school strengths
   useEffect(() => {
-  fetch("http://localhost:8000/api/school-strengths")
+  fetch(`${API_BASE_URL}/api/school-strengths`)
     .then((res) => res.json())
     .then((data) => {
       const dataObject = {};

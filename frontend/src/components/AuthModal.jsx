@@ -11,6 +11,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [popup, setPopup] = useState(null);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     setIsLogin(defaultIsLogin);
@@ -61,7 +62,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
 
       if (isLogin) {
         // ✅ LOGIN
-        const res = await axios.post("http://127.0.0.1:8000/login", {
+        const res = await axios.post(`${API_BASE_URL}/login`, {
           email,
           password,
         });
@@ -84,7 +85,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
           return;
         }
 
-        await axios.post("http://127.0.0.1:8000/register", {
+        await axios.post(`${API_BASE_URL}/register`, {
           email,
           password,
           full_name: fullName,
