@@ -73,13 +73,19 @@ export default function HistoryLogModal({ isOpen, onClose }) {
                    rounded-2xl w-full max-w-2xl p-6 text-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button */}
         <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-white/80 hover:text-red-400 transition"
-        >
-          <X size={24} />
-        </button>
+  onClick={onClose}
+  className="absolute top-4 right-4 transition-colors duration-200"
+  style={{
+    background: "transparent", // ensures no background in any mode
+    color: "rgb(191, 219, 254)", // Tailwind blue-200 (soft neutral)
+  }}
+  onMouseEnter={(e) => (e.currentTarget.style.color = "rgb(248, 113, 113)")} // red-400 on hover
+  onMouseLeave={(e) => (e.currentTarget.style.color = "rgb(191, 219, 254)")} // back to blue-200
+>
+  <X size={24} />
+</button>
+
 
         {/* Title */}
         <h2 className="text-2xl font-bold mb-4 text-center">History Log</h2>
@@ -99,17 +105,24 @@ export default function HistoryLogModal({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* Clear History Button */}
-        <div className="flex justify-end mb-2">
-          <button
-            className="flex items-center gap-2 text-red-500 hover:text-red-400 
-                       hover:drop-shadow-[0_0_5px_rgba(255,0,0,0.6)] 
-                       text-sm font-semibold transition-all duration-200"
-            onClick={clearHistory}
-          >
-            <Trash2 size={16} /> Clear History
-          </button>
-        </div>
+       <div className="flex justify-end mb-2">
+  <button
+  onClick={clearHistory}
+  className="flex items-center gap-2 px-4 py-2 
+             border border-red-500/70 hover:border-red-500 
+             text-red-400 hover:text-red-300 
+              hover:bg-transparent 
+             !bg-transparent !backdrop-filter-none !backdrop-blur-none 
+             rounded-md font-semibold text-sm 
+             transition-all duration-200 font-poppins 
+             shadow-none"
+  style={{ backgroundColor: "transparent", boxShadow: "none" }}
+>
+  <Trash2 size={16} /> Clear History
+</button>
+
+</div>
+
 
         {/* Logs Table */}
         <div className="overflow-y-auto max-h-80">

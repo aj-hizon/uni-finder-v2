@@ -120,11 +120,29 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"
-          >
-            <X size={24} />
-          </button>
+  onClick={onClose}
+  className="absolute top-4 right-4 
+             bg-transparent !bg-none border-none outline-none shadow-none
+             text-blue-300 hover:text-red-400 
+             transition-colors duration-200
+             p-0 m-0 rounded-none"
+  style={{
+    background: "transparent",
+    backdropFilter: "none",
+    WebkitBackdropFilter: "none",
+  }}
+>
+  <X
+    size={24}
+    className="stroke-current text-blue-300 hover:text-red-400 transition-colors duration-200"
+    style={{
+      background: "transparent",
+      fill: "none",
+      strokeWidth: 1.8,
+    }}
+  />
+</button>
+
 
           <h1 className="text-base font-semibold leading-tight mb-4 tracking-wide text-blue-200">
             {isLogin ? "Login" : "Register"}
@@ -164,22 +182,40 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
                 required
               />
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+  type="button"
+  onClick={() => setShowPassword(!showPassword)}
+  className="absolute right-3 top-1/2 transform -translate-y-1/2 
+             transition-colors duration-200"
+  style={{
+    background: "transparent", // ensures no background ever appears
+    color: "rgb(147, 197, 253)", // Tailwind blue-300
+  }}
+  onMouseEnter={(e) => (e.currentTarget.style.color = "rgb(191, 219, 254)")} // blue-200 on hover
+  onMouseLeave={(e) => (e.currentTarget.style.color = "rgb(147, 197, 253)")} // back to blue-300
+>
+  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+</button>
+
             </div>
 
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-lg font-medium bg-blue-700 hover:bg-blue-800 
-                         transition-all shadow-md shadow-blue-900/40"
-            >
-              {loading ? "Processing..." : isLogin ? "Login" : "Register"}
-            </button>
+  type="submit"
+  disabled={loading}
+  className="w-full py-3 rounded-lg font-semibold text-blue-100 
+             bg-blue-700/80 hover:bg-blue-600/80 
+             border border-blue-500/30 
+             shadow-md shadow-blue-900/40 
+             transition-all duration-300 
+             backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
+  style={{
+    background: "rgba(30, 64, 175, 0.8)", // force consistent blue tone
+    color: "#dbeafe", // light bluish-white text color
+    borderColor: "rgba(59, 130, 246, 0.3)",
+  }}
+>
+  {loading ? "Processing..." : isLogin ? "Login" : "Register"}
+</button>
+
           </form>
 
           <div className="text-center mt-6 text-sm text-gray-300">
@@ -187,23 +223,33 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
               <p>
                 Don’t have an account?{" "}
                 <button
-                  type="button"
-                  onClick={() => setIsLogin(false)}
-                  className="text-blue-400 hover:underline"
-                >
-                  Register
-                </button>
+  type="button"
+  onClick={() => setIsLogin(false)}
+  className="font-medium text-blue-300 hover:text-blue-200 transition-colors duration-200"
+  style={{
+    background: "transparent", // force no background
+    color: "rgb(147, 197, 253)", // fixed blue-300 color
+  }}
+>
+  Register
+</button>
+
               </p>
             ) : (
               <p>
                 Already have an account?{" "}
                 <button
-                  type="button"
-                  onClick={() => setIsLogin(true)}
-                  className="text-blue-400 hover:underline"
-                >
-                  Login
-                </button>
+  type="button"
+  onClick={() => setIsLogin(true)}
+  className="font-medium text-blue-300 hover:text-blue-200 transition-colors duration-200"
+  style={{
+    background: "transparent", // ensure no background ever appears
+    color: "rgb(147, 197, 253)", // fixed Tailwind blue-300 tone
+  }}
+>
+  Login
+</button>
+
               </p>
             )}
           </div>
