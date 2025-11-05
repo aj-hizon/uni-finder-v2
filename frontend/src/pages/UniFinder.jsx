@@ -16,6 +16,10 @@ function UniFinder() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showNote, setShowNote] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  console.log(API_BASE_URL)
+    
 
   const [answers, setAnswers] = useState({
     academics: [],
@@ -182,9 +186,6 @@ function UniFinder() {
     if (schoolType === "private") payload.max_budget = maxBudget;
 
     const token = localStorage.getItem("token");
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-    console.log(API_BASE_URL)
     
 
     try {
