@@ -341,38 +341,49 @@ function Navbar() {
   <X size={22} />
 </button>
 
-                <h2 className="text-lg font-semibold mb-4 font-poppins">
-                  {showLogoutConfirm
-                    ? "Are you sure you want to logout?"
-                    : "Are you sure you want to delete your account?"}
-                </h2>
-                <div className="flex justify-center gap-4 mt-6">
-                  <button
-                    onClick={() => {
-                      showLogoutConfirm ? handleLogout() : handleDeleteAccount();
-                    }}
-                    className="px-5 py-2 rounded-lg font-medium border border-red-500/40 bg-red-600/40 hover:bg-red-600/60 transition"
-                    type="button"
-                  >
-                    Yes
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowLogoutConfirm(false);
-                      setShowDeleteConfirm(false);
-                    }}
-                    className="px-5 py-2 rounded-lg font-medium border border-blue-800/40 bg-blue-600/30 hover:bg-blue-600/50 transition"
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
+                 {/* Modal text */}
+          <h2 className="text-lg font-semibold mb-4 font-poppins">
+            {showLogoutConfirm
+              ? "Are you sure you want to logout?"
+              : "Are you sure you want to delete your account?"}
+          </h2>
+
+          {/* Buttons */}
+          <div className="flex justify-center gap-4 mt-6">
+            <button
+              onClick={() => {
+                showLogoutConfirm ? handleLogout() : handleDeleteAccount();
+              }}
+              type="button"
+              className="!px-5 !py-2 !rounded-lg !font-medium 
+                         !bg-red-600 !text-white 
+                         hover:!bg-red-700 
+                         !border !border-red-600 
+                         transition-colors duration-200"
+            >
+              Yes
+            </button>
+            <button
+              onClick={() => {
+                setShowLogoutConfirm(false);
+                setShowDeleteConfirm(false);
+              }}
+              type="button"
+              className="!px-5 !py-2 !rounded-lg !font-medium 
+                         !bg-blue-600 !text-white 
+                         hover:!bg-blue-700 
+                         !border !border-blue-600 
+                         transition-colors duration-200"
+            >
+              Cancel
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>,
+  document.body
+)}
 
       {/* Other Modals */}
       <AuthModal
