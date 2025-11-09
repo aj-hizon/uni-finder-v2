@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import usePersistedState from "../hooks/usePersistedState";
 import {
   Heart,
   MapPin,
@@ -12,13 +12,18 @@ import {
 import Navbar from "../components/Navbar";
 
 function UniFinder() {
-  const [step, setStep] = useState(1);
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [showNote, setShowNote] = useState(false);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [step, setStep] = usePersistedState("uniFinder_step", 1);
+  const [loading, setLoading] = usePersistedState("uniFinder_loading", false);
+  const [showNote, setShowNote] = usePersistedState(
+    "uniFinder_showNote",
+    false
+  );
+  const [currentQuestionIndex, setCurrentQuestionIndex] = usePersistedState(
+    "uniFinder_questionIndex",
+    0
+  );
 
-  const [answers, setAnswers] = useState({
+  const [answers, setAnswers] = usePersistedState("uniFinder_answers", {
     academics: [],
     fields: [],
     activities: [],
@@ -33,40 +38,23 @@ function UniFinder() {
     },
   });
 
-  const [schoolType, setSchoolType] = useState("any");
-  const [locations, setLocations] = useState([]);
-  const [maxBudget, setMaxBudget] = useState(50000);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [schoolType, setSchoolType] = usePersistedState(
+    "uniFinder_schoolType",
+    "any"
+  );
+  const [locations, setLocations] = usePersistedState(
+    "uniFinder_locations",
+    []
+  );
+  const [maxBudget, setMaxBudget] = usePersistedState(
+    "uniFinder_maxBudget",
+    50000
+  );
 
-  const handleCheckboxChange = (questionKey, choice) => {
-    setAnswers((prevAnswers) => {
-      const selected = prevAnswers[questionKey];
-      const isSelected = selected.includes(choice);
+  const navigate = useNavigate();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-      // If already selected, remove it
-      if (isSelected) {
-        return {
-          ...prevAnswers,
-          [questionKey]: selected.filter((item) => item !== choice),
-        };
-      } else {
-        // Limit to 2 choices only
-        if (selected.length >= 2) return prevAnswers;
-        return {
-          ...prevAnswers,
-          [questionKey]: [...selected, choice],
-        };
-      }
-    });
-  };
-
-  const handleCustomChange = (category, value) => {
-    setAnswers((prev) => ({
-      ...prev,
-      custom: { ...prev.custom, [category]: value },
-    }));
-  };
-
+  // list of all locations and the filtered list used in the UI
   const allLocations = [
     "Angeles",
     "Apalit",
@@ -82,6 +70,7 @@ function UniFinder() {
   const filteredLocations =
     schoolType === "private" ? ["Angeles", "San Fernando"] : allLocations;
 
+  // questions used in step 2
   const questions = [
     {
       key: "academics",
@@ -176,6 +165,71 @@ function UniFinder() {
     },
   ];
 
+  const resetForm = () => {
+    setStep(1);
+    setCurrentQuestionIndex(0);
+    setAnswers({
+      academics: [],
+      fields: [],
+      activities: [],
+      goals: [],
+      environment: [],
+      custom: {
+        academics: "",
+        fields: "",
+        activities: "",
+        goals: "",
+        environment: "",
+      },
+    });
+    setSchoolType("any");
+    setLocations([]);
+    setMaxBudget(50000);
+    setGrades({
+      math: "",
+      science: "",
+      english: "",
+      filipino: "",
+      social: "",
+    });
+
+    // Clear localStorage
+    localStorage.removeItem("uniFinder_step");
+    localStorage.removeItem("uniFinder_questionIndex");
+    localStorage.removeItem("uniFinder_answers");
+    localStorage.removeItem("uniFinder_schoolType");
+    localStorage.removeItem("uniFinder_locations");
+    localStorage.removeItem("uniFinder_maxBudget");
+    localStorage.removeItem("uniFinder_grades");
+  };
+
+  const handleCheckboxChange = (questionKey, choice) => {
+    setAnswers((prevAnswers) => {
+      const selected = prevAnswers[questionKey];
+      const isSelected = selected.includes(choice);
+
+      if (isSelected) {
+        return {
+          ...prevAnswers,
+          [questionKey]: selected.filter((item) => item !== choice),
+        };
+      } else {
+        if (selected.length >= 2) return prevAnswers;
+        return {
+          ...prevAnswers,
+          [questionKey]: [...selected, choice],
+        };
+      }
+    });
+  };
+
+  const handleCustomChange = (category, value) => {
+    setAnswers((prev) => ({
+      ...prev,
+      custom: { ...prev.custom, [category]: value },
+    }));
+  };
+
   const search = async () => {
     setLoading(true);
 
@@ -205,6 +259,9 @@ function UniFinder() {
       localStorage.setItem("message", data.message || "");
       localStorage.setItem("type", data.type || "exact");
 
+      // Reset form after successful submission
+      resetForm();
+
       navigate("/results");
     } catch (error) {
       console.error("Error fetching results:", error);
@@ -213,7 +270,7 @@ function UniFinder() {
     }
   };
 
-  const [grades, setGrades] = useState({
+  const [grades, setGrades] = usePersistedState("uniFinder_grades", {
     math: "",
     science: "",
     english: "",
@@ -555,6 +612,7 @@ function UniFinder() {
             <>
               {(() => {
                 const q = questions[currentQuestionIndex];
+                if (!q) return null; // guard: prevents crash if index is out of range
                 const hasSelectedChoices = answers[q.key].length > 0;
                 const hasTypedCustom = answers.custom[q.key].trim() !== "";
 
@@ -874,7 +932,7 @@ function UniFinder() {
                       Preferred Locations
                     </h2>
                     <p className="text-xs sm:text-sm md:text-base text-blue-100 font-inter">
-                      Choose cities in Pampanga where you'd like to study
+                      Choose cities in Pampanga where'd like to study
                     </p>
                   </div>
                 </div>
