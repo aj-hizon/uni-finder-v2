@@ -1,14 +1,15 @@
 import os
+import bcrypt as py_bcrypt
 from typing import List, Optional
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from passlib.hash import bcrypt
 from fastapi import FastAPI, HTTPException, Query, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from dotenv import load_dotenv
+
 
 from db import db
 from recommendation import recommend
@@ -20,6 +21,7 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key_here")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
+
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
@@ -56,7 +58,9 @@ app.add_middleware(
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.utcnow() + (
+        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -96,7 +100,7 @@ async def get_all_programs():
 @app.post("/search", summary="Get program recommendations")
 async def search(
     request_data: SearchRequest,
-    current_user: Optional[dict] = Depends(get_current_user_optional)
+    current_user: Optional[dict] = Depends(get_current_user_optional),
 ):
     user_email = current_user["email"] if current_user else "guest"
     print(f"📥 Received search request from {user_email}")
@@ -115,39 +119,87 @@ async def search(
 
     # ✅ Save history for logged-in users (including grades + subjects)
     if current_user:
-        db["user_recommendations"].insert_one({
-            "user_email": user_email,
-            "answers": request_data.answers,
-            "grades": request_data.grades,              # ✅ save grades dictionary
-            "subjects": list(request_data.grades.keys()) if request_data.grades else [],  # ✅ extract subjects
-            "filters": {
-                "school_type": request_data.school_type,
-                "locations": request_data.locations,
-                "max_budget": request_data.max_budget,
-            },
-            "result_type": result.get("type"),
-            "results": result.get("results", []),
-            "weak_matches": result.get("weak_matches", []),
-            "matched_category": result.get("matched_category"),
-            "top_schools_for_category": result.get("top_schools_for_category", []),
-            "created_at": datetime.utcnow(),
-        })
+        db["user_recommendations"].insert_one(
+            {
+                "user_email": user_email,
+                "answers": request_data.answers,
+                "grades": request_data.grades,  # ✅ save grades dictionary
+                "subjects": (
+                    list(request_data.grades.keys()) if request_data.grades else []
+                ),  # ✅ extract subjects
+                "filters": {
+                    "school_type": request_data.school_type,
+                    "locations": request_data.locations,
+                    "max_budget": request_data.max_budget,
+                },
+                "result_type": result.get("type"),
+                "results": result.get("results", []),
+                "weak_matches": result.get("weak_matches", []),
+                "matched_category": result.get("matched_category"),
+                "top_schools_for_category": result.get("top_schools_for_category", []),
+                "created_at": datetime.utcnow(),
+            }
+        )
 
     return result
 
 
-
-@app.get("/recommendation-history")
+@app.get("/recommendation-history", summary="Get user's recommendation history")
 async def get_recommendation_history(current_user: dict = Depends(get_current_user)):
-    data = list(
-        db["user_recommendations"].find({"user_email": current_user["email"]}, {"_id": 0})
-        .sort("created_at", -1)
-    )
-    return data
+    try:
+        print(f"Fetching recommendation history for user: {current_user['email']}")
+
+        if not current_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Get raw data from MongoDB
+        raw_data = list(
+            db["user_recommendations"]
+            .find(
+                {"user_email": current_user["email"]},
+                {
+                    "_id": 0,
+                    "user_email": 1,
+                    "answers": 1,
+                    "grades": 1,
+                    "filters": 1,
+                    "results": 1,
+                    "created_at": 1,
+                },
+            )
+            .sort("created_at", -1)
+        )
+
+        # Convert datetime objects to ISO format strings
+        data = []
+        for record in raw_data:
+            if "created_at" in record:
+                record["created_at"] = record["created_at"].isoformat()
+            data.append(record)
+
+        print(f"Found {len(data)} recommendations for user: {current_user['email']}")
+
+        if not data:
+            return {"message": "No recommendation history found", "data": []}
+
+        return JSONResponse(
+            content={
+                "message": "Recommendation history retrieved successfully",
+                "count": len(data),
+                "data": data,
+            }
+        )
+
+    except Exception as e:
+        print(f"Error fetching recommendation history: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to fetch recommendation history: {str(e)}"
+        )
 
 
-
-@app.get("/programs/from-file", summary="Get program vectors (deprecated or specific use)")
+@app.get(
+    "/programs/from-file", summary="Get program vectors (deprecated or specific use)"
+)
 async def get_programs_from_file():
     try:
         collection = db["program_vectors"]
@@ -155,7 +207,10 @@ async def get_programs_from_file():
         return JSONResponse(content=data)
     except Exception as e:
         print(f"Error fetching program vectors from file: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error while fetching program vectors.")
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error while fetching program vectors.",
+        )
 
 
 @app.get("/api/school-strengths", summary="Get school strengths data")
@@ -166,9 +221,10 @@ async def get_school_strengths():
         return JSONResponse(content={"schools": docs})
     except Exception as e:
         print(f"❌ Error fetching school_strengths: {e}")
-        raise HTTPException(status_code=500, detail=f"Database error while fetching school strengths: {e}")
-
-
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error while fetching school strengths: {e}",
+        )
 
 
 @app.get("/school-rankings", summary="Get school rankings data")
@@ -179,7 +235,10 @@ async def get_school_rankings():
         return JSONResponse(content=doc if doc else {}, status_code=200)
     except Exception as e:
         print(f"❌ Error fetching school_rankings: {e}")
-        raise HTTPException(status_code=500, detail=f"Database error while fetching school rankings: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error while fetching school rankings: {e}",
+        )
 
 
 @app.get("/programs/search", summary="Search programs by name, location, or category")
@@ -201,82 +260,145 @@ async def search_programs(
         return JSONResponse(content=data)
     except Exception as e:
         print(f"Error searching programs: {e}")
-        raise HTTPException(status_code=500, detail=f"Database error during program search: {e}")
-    
-    
+        raise HTTPException(
+            status_code=500, detail=f"Database error during program search: {e}"
+        )
+
+
 @app.post("/register", summary="Register a new user")
-async def register_user(user: dict):
-    email = user.get("email")
-    password = user.get("password")
-    full_name = user.get("full_name")
+async def register_user(email: str, password: str):
+    try:
+        # Validate email and password
+        if not email or not password:
+            raise HTTPException(
+                status_code=400, detail="Email and password are required"
+            )
 
-    # Validate input
-    if not all([email, password, full_name]):
-        raise HTTPException(status_code=400, detail="All fields are required.")
+        # Check if user already exists
+        existing_user = db["users"].find_one({"email": email, "deleted_at": None})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Check if email already exists
-    existing = db["users"].find_one({"email": email})
-    if existing:
-        raise HTTPException(status_code=400, detail="Email already registered.")
+        # Hash password with bcrypt
+        salt = py_bcrypt.gensalt()
+        encoded_password = password.encode("utf-8")[:72]  # Truncate to bcrypt's limit
+        hashed_password = py_bcrypt.hashpw(encoded_password, salt)
 
-    # Hash only the first 72 bytes (bcrypt limitation)
-    hashed_pw = bcrypt.hash(password[:72])
+        # Create user document
+        user = {
+            "email": email,
+            "password": hashed_password.decode("utf-8"),  # Store as string in DB
+            "created_at": datetime.utcnow(),
+            "deleted_at": None,
+            "last_login": None,
+        }
 
-    # Insert new user
-    db["users"].insert_one({
-        "email": email,
-        "password": hashed_pw,
-        "full_name": full_name,
-        "created_at": datetime.utcnow(),
-        "deleted_at": None
-    })
+        # Insert into database
+        result = db["users"].insert_one(user)
+        if not result.inserted_id:
+            raise HTTPException(status_code=500, detail="Failed to create user")
 
-    return {"message": "Registration successful!"}
+        # Generate access token
+        access_token = create_access_token(data={"sub": email})
+
+        # Log the registration
+        db["user_logs"].insert_one(
+            {"email": email, "action": "register", "timestamp": datetime.utcnow()}
+        )
+
+        return {"access_token": access_token, "token_type": "bearer", "email": email}
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Registration error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Registration failed")
 
 
 @app.post("/login", summary="Login user and get token")
 async def login_user(credentials: dict):
-    email = credentials.get("email")
-    password = credentials.get("password")
+    try:
+        email = credentials.get("email")
+        password = credentials.get("password")
 
-    user = db["users"].find_one({"email": email})
-    if not user or not bcrypt.verify(password, user["password"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password.")
+        if not email or not password:
+            raise HTTPException(status_code=400, detail="Email and password required")
 
-    # ✅ Log the login event
-    db["user_logs"].insert_one({
-        "email": user["email"],
-        "action": "login",
-        "timestamp": datetime.utcnow()
-    })
+        user = db["users"].find_one({"email": email, "deleted_at": None})
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    access_token = create_access_token(data={"sub": user["email"]})
-    return {
-        "access_token": access_token,
-        "user": {
-            "email": user["email"],
-            "full_name": user["full_name"]
-        }
-    }
+        # Verify password using bcrypt
+        if not py_bcrypt.checkpw(
+            password.encode("utf-8"), user["password"].encode("utf-8")
+        ):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    
+        # Update last login
+        db["users"].update_one(
+            {"email": email}, {"$set": {"last_login": datetime.utcnow()}}
+        )
+
+        # Log the login
+        db["user_logs"].insert_one(
+            {"email": email, "action": "login", "timestamp": datetime.utcnow()}
+        )
+
+        access_token = create_access_token(data={"sub": email})
+        return {"access_token": access_token, "token_type": "bearer", "email": email}
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Login error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Login failed")
+
+
 @app.delete("/delete-account", summary="Delete the logged-in user account")
 async def delete_account(current_user: dict = Depends(get_current_user)):
     db["users"].update_one(
-        {"_id": current_user["_id"]},
-        {"$set": {"deleted_at": datetime.utcnow()}}
+        {"_id": current_user["_id"]}, {"$set": {"deleted_at": datetime.utcnow()}}
     )
     return {"message": "Account deleted successfully."}
 
 
 @app.post("/logout", summary="Log the user out")
-async def logout_user(current_user: dict = Depends(get_current_user)):
-    db["user_logs"].insert_one({
-        "email": current_user["email"],
-        "action": "logout",
-        "timestamp": datetime.utcnow()
-    })
-    return {"message": "Logged out successfully."}
+async def logout_user(request: Request, current_user: dict = Depends(get_current_user)):
+    try:
+        # Get client IP and user agent for security logging
+        client_ip = request.client.host
+        user_agent = request.headers.get("user-agent", "Unknown")
+
+        # Log the logout attempt
+        db["user_logs"].insert_one(
+            {
+                "email": current_user["email"],
+                "action": "logout",
+                "timestamp": datetime.utcnow(),
+                "ip_address": client_ip,
+                "user_agent": user_agent,
+                "status": "success",
+            }
+        )
+
+        # Optional: Invalidate token here if you implement token blacklisting
+
+        return JSONResponse(
+            status_code=200, content={"message": "Logged out successfully"}
+        )
+
+    except Exception as e:
+        # Log the error
+        db["user_logs"].insert_one(
+            {
+                "email": current_user["email"],
+                "action": "logout",
+                "timestamp": datetime.utcnow(),
+                "status": "failed",
+                "error": str(e),
+            }
+        )
+        raise HTTPException(status_code=500, detail="Logout failed. Please try again.")
 
 
 @app.get("/history-log", summary="Get user's account info and activity history")
@@ -287,7 +409,7 @@ async def get_history_log(current_user: dict = Depends(get_current_user)):
         # Fetch account info
         user_data = db["users"].find_one(
             {"email": email, "deleted_at": None},
-            {"_id": 0, "email": 1, "full_name": 1, "created_at": 1}
+            {"_id": 0, "email": 1, "full_name": 1, "created_at": 1},
         )
 
         # Fetch user logs (login/logout)
@@ -297,10 +419,7 @@ async def get_history_log(current_user: dict = Depends(get_current_user)):
             .sort("timestamp", -1)
         )
 
-        return {
-            "user": user_data,
-            "logs": logs
-        }
+        return {"user": user_data, "logs": logs}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching history log: {e}")
@@ -314,27 +433,19 @@ async def clear_history(current_user: dict = Depends(get_current_user)):
         return {"message": f"Successfully cleared {result.deleted_count} log(s)."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to clear history: {e}")
-    
-    
-    
-# ✅ GET - fetch all saved results for logged-in user
+
+
 @app.get("/previous-results")
 async def get_previous_results(current_user=Depends(get_current_user)):
     results = list(
         db["user_recommendations"].find(
-            {"user_email": current_user["email"]},
-            {"_id": 0}
+            {"user_email": current_user["email"]}, {"_id": 0}
         )
     )
     return results
 
 
-# ✅ DELETE - clear all saved results for logged-in user
 @app.delete("/clear-results")
 async def clear_results(current_user=Depends(get_current_user)):
     db["user_recommendations"].delete_many({"user_email": current_user["email"]})
     return {"message": "Results cleared"}
-
-
-    
-    

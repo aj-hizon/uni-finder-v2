@@ -6,10 +6,7 @@ function Results() {
   const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [message, setMessage] = useState("");
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-  console.log(API_BASE_URL)
-
+  
   useEffect(() => {
     const storedResults = JSON.parse(localStorage.getItem("results"));
     const storedMessage = localStorage.getItem("message");
