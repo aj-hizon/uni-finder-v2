@@ -83,7 +83,7 @@ export default function HistoryLogModal({ isOpen, onClose }) {
         </button>
 
         {/* Title */}
-        <h2 className="text-2xl font-bold mb-4 text-center">History Log</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center font-poppins">History Log</h2>
 
         {/* User info */}
         {user && (

@@ -1,4 +1,6 @@
 import os
+import psutil
+import time
 import bcrypt as py_bcrypt
 from typing import List, Optional
 from datetime import datetime, timedelta
@@ -7,7 +9,7 @@ from fastapi import FastAPI, HTTPException, Query, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from dotenv import load_dotenv
 
 
@@ -73,6 +75,11 @@ class SearchRequest(BaseModel):
     locations: Optional[List[str]] = None
     max_budget: Optional[float] = None
 
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+
 
 # --- Optional Authentication ---
 async def get_current_user_optional(request: Request):
@@ -103,30 +110,32 @@ async def search(
     current_user: Optional[dict] = Depends(get_current_user_optional),
 ):
     user_email = current_user["email"] if current_user else "guest"
-    print(f"📥 Received search request from {user_email}")
 
-    # 🧠 Use grades from request (or possibly user profile in future)
-    user_grades = request_data.grades
+    # Start timer for reference (optional)
+    start_time = time.time()
 
     # Call recommendation logic
     result = recommend(
         answers=request_data.answers,
-        user_grades=user_grades,
+        user_grades=request_data.grades,
         school_type=request_data.school_type,
         locations=request_data.locations,
         max_budget=request_data.max_budget,
     )
 
-    # ✅ Save history for logged-in users (including grades + subjects)
+    elapsed_time = time.time() - start_time
+    print(f"⏱️ Time taken: {elapsed_time:.2f} sec")
+
+    # Save history for logged-in users
     if current_user:
         db["user_recommendations"].insert_one(
             {
                 "user_email": user_email,
                 "answers": request_data.answers,
-                "grades": request_data.grades,  # ✅ save grades dictionary
+                "grades": request_data.grades,
                 "subjects": (
                     list(request_data.grades.keys()) if request_data.grades else []
-                ),  # ✅ extract subjects
+                ),
                 "filters": {
                     "school_type": request_data.school_type,
                     "locations": request_data.locations,
@@ -266,42 +275,41 @@ async def search_programs(
 
 
 @app.post("/register", summary="Register a new user")
-async def register_user(email: str, password: str):
+async def register_user(request: RegisterRequest):
     try:
-        # Validate email and password
-        if not email or not password:
-            raise HTTPException(
-                status_code=400, detail="Email and password are required"
-            )
+        email = request.email
+        password = request.password
+        full_name = request.full_name
+
+        if not email or not password or not full_name:
+            raise HTTPException(status_code=400, detail="All fields are required")
 
         # Check if user already exists
         existing_user = db["users"].find_one({"email": email, "deleted_at": None})
         if existing_user:
             raise HTTPException(status_code=400, detail="Email already registered")
 
-        # Hash password with bcrypt
+        # Hash password
         salt = py_bcrypt.gensalt()
-        encoded_password = password.encode("utf-8")[:72]  # Truncate to bcrypt's limit
+        encoded_password = password.encode("utf-8")[:72]
         hashed_password = py_bcrypt.hashpw(encoded_password, salt)
 
         # Create user document
         user = {
             "email": email,
-            "password": hashed_password.decode("utf-8"),  # Store as string in DB
+            "full_name": full_name,
+            "password": hashed_password.decode("utf-8"),
             "created_at": datetime.utcnow(),
             "deleted_at": None,
             "last_login": None,
         }
 
-        # Insert into database
-        result = db["users"].insert_one(user)
-        if not result.inserted_id:
-            raise HTTPException(status_code=500, detail="Failed to create user")
+        db["users"].insert_one(user)
 
         # Generate access token
         access_token = create_access_token(data={"sub": email})
 
-        # Log the registration
+        # Log registration
         db["user_logs"].insert_one(
             {"email": email, "action": "register", "timestamp": datetime.utcnow()}
         )
@@ -311,8 +319,9 @@ async def register_user(email: str, password: str):
     except HTTPException as he:
         raise he
     except Exception as e:
-        print(f"Registration error: {str(e)}")
+        print(f"Registration error: {e}")
         raise HTTPException(status_code=500, detail="Registration failed")
+
 
 
 @app.post("/login", summary="Login user and get token")
@@ -354,12 +363,28 @@ async def login_user(credentials: dict):
         raise HTTPException(status_code=500, detail="Login failed")
 
 
-@app.delete("/delete-account", summary="Delete the logged-in user account")
+@app.delete(
+    "/delete-account",
+    summary="Delete the logged-in user account and past recommendations",
+)
 async def delete_account(current_user: dict = Depends(get_current_user)):
-    db["users"].update_one(
-        {"_id": current_user["_id"]}, {"$set": {"deleted_at": datetime.utcnow()}}
-    )
-    return {"message": "Account deleted successfully."}
+    try:
+        db["users"].update_one(
+            {"_id": current_user["_id"]}, {"$set": {"deleted_at": datetime.utcnow()}}
+        )
+
+        result = db["user_recommendations"].delete_many(
+            {"user_email": current_user["email"]}
+        )
+
+        return {
+            "message": "Account deleted successfully.",
+            "deleted_recommendations": result.deleted_count,
+        }
+
+    except Exception as e:
+        print(f"Error deleting account: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete account")
 
 
 @app.post("/logout", summary="Log the user out")
@@ -435,17 +460,48 @@ async def clear_history(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=f"Failed to clear history: {e}")
 
 
-@app.get("/previous-results")
-async def get_previous_results(current_user=Depends(get_current_user)):
-    results = list(
-        db["user_recommendations"].find(
-            {"user_email": current_user["email"]}, {"_id": 0}
+# --- Previous Results Endpoints ---
+
+from fastapi.responses import JSONResponse
+
+
+@app.get("/previous-results", summary="Get previous recommendation results")
+async def get_previous_results(
+    current_user: Optional[dict] = Depends(get_current_user_optional),
+):
+    """
+    Returns the list of previous recommendation results for a user.
+    Guests receive an empty list.
+    """
+    if not current_user:
+        return JSONResponse(content={"results": []})  # guest users get empty array
+
+    try:
+        results = list(
+            db["user_recommendations"]
+            .find({"user_email": current_user["email"]}, {"_id": 0})
+            .sort("created_at", -1)
         )
-    )
-    return results
+        # Convert datetime to ISO format for JSON
+        for r in results:
+            if "created_at" in r:
+                r["created_at"] = r["created_at"].isoformat()
+        return JSONResponse(content={"results": results})
+    except Exception as e:
+        print(f"Error fetching previous results: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch previous results")
 
 
-@app.delete("/clear-results")
-async def clear_results(current_user=Depends(get_current_user)):
-    db["user_recommendations"].delete_many({"user_email": current_user["email"]})
-    return {"message": "Results cleared"}
+@app.delete("/clear-results", summary="Clear all previous recommendation results")
+async def clear_results(current_user: dict = Depends(get_current_user)):
+    """
+    Deletes all recommendation results for the logged-in user.
+    """
+    try:
+        result = db["user_recommendations"].delete_many(
+            {"user_email": current_user["email"]}
+        )
+        return {"message": f"Deleted {result.deleted_count} previous results"}
+    except Exception as e:
+        print(f"Error clearing results: {e}")
+        raise HTTPException(status_code=500, detail="Failed to clear previous results")
