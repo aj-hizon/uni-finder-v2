@@ -20,8 +20,8 @@ from recommendation import recommend
 security = HTTPBearer()
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key_here")
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 
 
@@ -47,6 +47,13 @@ app = FastAPI(
     version="1.0.0",
 )
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    print(f"Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    print(f"Response status: {response.status_code}")
+    return response
+
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 app.add_middleware(
@@ -58,13 +65,12 @@ app.add_middleware(
 )
 
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
+def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (
-        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 
 # --- Request Models ---
@@ -75,8 +81,9 @@ class SearchRequest(BaseModel):
     locations: Optional[List[str]] = None
     max_budget: Optional[float] = None
 
+
 class RegisterRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     full_name: str
 
@@ -88,7 +95,7 @@ async def get_current_user_optional(request: Request):
         return None
     try:
         token = token.replace("Bearer ", "")
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return {"email": payload.get("sub")}
     except JWTError:
         return None
@@ -109,7 +116,9 @@ async def search(
     request_data: SearchRequest,
     current_user: Optional[dict] = Depends(get_current_user_optional),
 ):
+    
     user_email = current_user["email"] if current_user else "guest"
+    print(user_email)
 
     # Start timer for reference (optional)
     start_time = time.time()
@@ -304,6 +313,8 @@ async def register_user(request: RegisterRequest):
             "last_login": None,
         }
 
+        print("User inserted:", user)
+
         db["users"].insert_one(user)
 
         # Generate access token
@@ -321,7 +332,6 @@ async def register_user(request: RegisterRequest):
     except Exception as e:
         print(f"Registration error: {e}")
         raise HTTPException(status_code=500, detail="Registration failed")
-
 
 
 @app.post("/login", summary="Login user and get token")
@@ -465,6 +475,10 @@ async def clear_history(current_user: dict = Depends(get_current_user)):
 from fastapi.responses import JSONResponse
 
 
+from fastapi.responses import JSONResponse
+from fastapi import status, HTTPException
+
+
 @app.get("/previous-results", summary="Get previous recommendation results")
 async def get_previous_results(
     current_user: Optional[dict] = Depends(get_current_user_optional),
@@ -473,23 +487,37 @@ async def get_previous_results(
     Returns the list of previous recommendation results for a user.
     Guests receive an empty list.
     """
-    if not current_user:
-        return JSONResponse(content={"results": []})  # guest users get empty array
-
     try:
+        # 🧩 Handle guest users safely
+        if not current_user:
+            return JSONResponse(status_code=status.HTTP_200_OK, content={"results": []})
+
+        # 🧠 Fetch results for the logged-in user
         results = list(
             db["user_recommendations"]
             .find({"user_email": current_user["email"]}, {"_id": 0})
             .sort("created_at", -1)
         )
-        # Convert datetime to ISO format for JSON
+
+        print(results)
+
+        # 🕒 Convert datetime objects to ISO strings
         for r in results:
             if "created_at" in r:
                 r["created_at"] = r["created_at"].isoformat()
-        return JSONResponse(content={"results": results})
+
+        # ✅ Always return JSON
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, content={"results": results}
+        )
+
     except Exception as e:
-        print(f"Error fetching previous results: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch previous results")
+        print(f"❌ Error fetching previous results: {e}")
+        # Return valid JSON on server errors too
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "Failed to fetch previous results"},
+        )
 
 
 @app.delete("/clear-results", summary="Clear all previous recommendation results")

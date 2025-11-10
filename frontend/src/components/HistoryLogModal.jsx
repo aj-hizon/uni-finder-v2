@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { X, Trash2 } from "lucide-react";
 
 export default function HistoryLogModal({ isOpen, onClose }) {
@@ -22,21 +22,31 @@ export default function HistoryLogModal({ isOpen, onClose }) {
     });
   };
 
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     try {
       const res = await fetch(`${API_BASE_URL}/history-log`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "69420",
+        },
       });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Server returned non-JSON response:", text);
+        return;
+      }
+
       const data = await res.json();
-      setUser(data.user);
-      setLogs(data.logs);
+      setUser(data.user || null);
+      setLogs(data.logs || []);
     } catch (err) {
       console.error("Failed to fetch history log:", err);
     }
-  };
+  }, [API_BASE_URL]);
 
   const clearHistory = async () => {
     const token = localStorage.getItem("token");
@@ -48,7 +58,11 @@ export default function HistoryLogModal({ isOpen, onClose }) {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to clear history");
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to clear history");
+      }
 
       setLogs([]);
       alert("History cleared successfully!");
@@ -65,13 +79,11 @@ export default function HistoryLogModal({ isOpen, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center 
-                 min-h-screen bg-black/80 backdrop-blur-sm font-[Poppins] px-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center min-h-screen bg-black/80 backdrop-blur-sm font-[Poppins] px-4"
       onClick={onClose}
     >
       <div
-        className="relative bg-blue-800/40 backdrop-blur-md border border-blue-400/20 
-                   rounded-2xl w-full max-w-2xl p-6 text-white shadow-2xl"
+        className="relative bg-blue-800/40 backdrop-blur-md border border-blue-400/20 rounded-2xl w-full max-w-2xl p-6 text-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -83,7 +95,9 @@ export default function HistoryLogModal({ isOpen, onClose }) {
         </button>
 
         {/* Title */}
-        <h2 className="text-2xl font-bold mb-4 text-center font-poppins">History Log</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center font-poppins">
+          History Log
+        </h2>
 
         {/* User info */}
         {user && (
@@ -103,9 +117,7 @@ export default function HistoryLogModal({ isOpen, onClose }) {
         {/* Clear History Button */}
         <div className="flex justify-end mb-2">
           <button
-            className="flex items-center gap-2 text-red-500 hover:text-red-400 
-                       hover:drop-shadow-[0_0_5px_rgba(255,0,0,0.6)] 
-                       text-sm font-semibold transition-all duration-200"
+            className="flex items-center gap-2 text-red-500 hover:text-red-400 hover:drop-shadow-[0_0_5px_rgba(255,0,0,0.6)] text-sm font-semibold transition-all duration-200"
             onClick={clearHistory}
           >
             <Trash2 size={16} /> Clear History

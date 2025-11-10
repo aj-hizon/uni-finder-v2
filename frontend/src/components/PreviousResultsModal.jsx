@@ -29,15 +29,32 @@ const schoolImages = {
 
 // Helper functions
 const getTuitionDisplay = (tuition) => {
-  if (!tuition || tuition.toLowerCase() === "n/a") return "Free";
-  return tuition;
+  if (tuition === null || tuition === undefined) return "-";
+
+  // If it's a number, format it as currency
+  if (typeof tuition === "number") return `₱${tuition.toLocaleString()}`;
+
+  // If it's a string
+  if (typeof tuition === "string") {
+    const trimmed = tuition.trim().toLowerCase();
+    if (trimmed === "n/a" || trimmed === "") return "Free";
+    return tuition;
+  }
+
+  // fallback for unexpected types
+  return String(tuition);
 };
 
 const getBoardPassingRateDisplay = (rate) => {
-  if (!rate || rate === "-" || rate.toLowerCase().includes("n/a")) {
-    return "No Board Exam";
+  if (rate === null || rate === undefined) return "No Board Exam";
+  if (typeof rate === "string") {
+    const trimmed = rate.trim().toLowerCase();
+    if (trimmed === "-" || trimmed === "n/a") return "No Board Exam";
+    return rate;
   }
-  return rate;
+  // If it's a number
+  if (typeof rate === "number") return `${rate}%`;
+  return String(rate);
 };
 
 // === Sub-components ===
@@ -187,12 +204,13 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/previous-results`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await fetch(`${API_BASE_URL}/previous-results`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
+        });
 
         // If server returns non-JSON, log it for debugging
         const contentType = res.headers.get("content-type");
