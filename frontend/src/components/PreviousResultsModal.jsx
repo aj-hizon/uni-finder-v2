@@ -63,7 +63,7 @@ function GradesGrid({ grades }) {
   if (!grades || Object.keys(grades).length === 0) return null;
   return (
     <div className="mb-5">
-      <h4 className="font-semibold mb-2 text-blue-200">Your Grades</h4>
+      <h4 className="font-semibold mb-2 text-blue-200 font-poppins">Your Grades</h4>
       <div className="bg-blue-950/30 p-4 rounded-lg border border-blue-400/10 text-sm grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {Object.entries(grades).map(([subject, grade]) => (
           <div
@@ -83,7 +83,7 @@ function AnswersList({ answers }) {
   if (!answers) return null;
   return (
     <div className="mb-5">
-      <h4 className="font-semibold mb-2 text-blue-200">Your Previous Answer</h4>
+      <h4 className="font-semibold mb-2 text-blue-200 font-poppins">Your Previous Answer</h4>
       <div className="bg-blue-950/30 p-4 rounded-lg border border-blue-400/10 text-sm space-y-1 leading-relaxed">
         {Object.entries(answers).map(([key, value]) => (
           <div key={key} className="flex gap-1 flex-wrap">
@@ -167,13 +167,13 @@ function ProgramsTable({ results }) {
 function ResultCard({ resItem, index }) {
   return (
     <div className="bg-blue-900/20 p-5 rounded-xl border border-blue-400/30">
-      <h3 className="text-xl font-semibold mb-4 text-blue-300">
+      <h3 className="text-xl font-semibold mb-4 text-blue-300 font-poppins">
         Result #{index + 1}
       </h3>
       <GradesGrid grades={resItem.grades} />
       <AnswersList answers={resItem.answers} />
       <div>
-        <h4 className="font-semibold mb-3 text-blue-200">
+        <h4 className="font-semibold mb-3 text-blue-200 font-poppins">
           Recommended Programs
         </h4>
         <ProgramsTable results={resItem.results} />
@@ -257,7 +257,7 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
 
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[9999] flex justify-center items-start bg-black/60 backdrop-blur-sm overflow-y-auto py-10 px-4">
-      <div className="relative bg-[#0a1733]/90 rounded-2xl w-full max-w-6xl p-6 text-white shadow-2xl">
+      <div className="relative bg-[#0a1733]/90 rounded-2xl w-full max-w-6xl p-6 text-white shadow-2xl font-poppins">
         <button onClick={onClose} className="absolute top-4 right-4">
           <X size={24} />
         </button>

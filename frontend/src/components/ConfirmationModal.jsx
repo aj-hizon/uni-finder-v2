@@ -22,7 +22,7 @@ export default function ConfirmationModal({
           <X size={20} />
         </button>
 
-        <h3 className="text-xl font-bold mb-3 text-center">{title}</h3>
+        <h3 className="text-xl font-bold mb-3 text-center font-poppins">{title}</h3>
         <p className="text-center text-white/80 mb-6">{message}</p>
 
         <div className="flex justify-center gap-3">
