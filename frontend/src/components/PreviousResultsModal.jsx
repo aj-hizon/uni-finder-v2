@@ -15,28 +15,29 @@ function ConfirmationModal({
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-poppins">
+    <div className="fixed inset-0 z-10000 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-poppins">
       <div className="bg-[#0a1733]/90 border border-blue-400/20 rounded-2xl p-6 w-full max-w-md text-white shadow-2xl relative font-poppins">
         {/* Close Button */}
         <button
-  onClick={onClose}
-  className="absolute top-3 right-3 
+          onClick={onClose}
+          className="absolute top-3 right-3 
              text-gray-300 hover:text-red-400 
              transition-all duration-200 
              bg-transparent hover:bg-transparent 
              p-1 rounded-full 
              shadow-none outline-none border-none 
              backdrop-blur-none"
-  style={{
-    backgroundColor: "transparent",
-    boxShadow: "none",
-  }}
->
-  <X size={20} />
-</button>
+          style={{
+            backgroundColor: "transparent",
+            boxShadow: "none",
+          }}
+        >
+          <X size={20} />
+        </button>
 
-
-        <h3 className="text-xl font-bold mb-3 text-center font-poppins">{title}</h3>
+        <h3 className="text-xl font-bold mb-3 text-center font-poppins">
+          {title}
+        </h3>
         <p className="text-center text-white/80 mb-6 font-poppins">{message}</p>
 
         <div className="flex justify-center gap-3 font-poppins">
@@ -71,6 +72,8 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
   const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -80,59 +83,50 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
       return;
     }
 
-    const fetchPreviousResults = async () => {
+    const fetchResults = async () => {
       setLoading(true);
       setError("");
-
       try {
-        const res = await fetch("http://localhost:8000/previous-results", {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await fetch(`${API_BASE_URL}/previous-results`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
         });
 
-        if (!res.ok) throw new Error("Failed to fetch previous results");
+        // If server returns non-JSON, log it for debugging
+        const contentType = res.headers.get("content-type");
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        if (!contentType || !contentType.includes("application/json")) {
+          const text = await res.text();
+          console.error("Expected JSON but got:", text);
+          throw new Error("Server returned non-JSON response");
+        }
+
         const data = await res.json();
-
-        const userResults = Array.isArray(data)
-          ? data
-          : Array.isArray(data.results)
-          ? data.results
-          : [];
-
-        setResults(userResults);
+        setResults(data.results || []);
       } catch (err) {
-        console.error(err);
-        setError("Error loading previous results.");
+        console.error("Fetch previous results error:", err);
+        setError("Failed to fetch previous results.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPreviousResults();
+    fetchResults();
   }, [isOpen]);
 
   const handleClearResults = async () => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      setError("You must be logged in to clear results.");
-      return;
-    }
-
+    if (!token) return setError("You must be logged in to clear results.");
+    setLoading(true);
     try {
-      setLoading(true);
-      setError("");
-
-      const res = await fetch("http://localhost:8000/clear-results", {
+      const res = await fetch(`${API_BASE_URL}/clear-results`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!res.ok) throw new Error("Failed to clear previous results.");
-
-      const data = await res.json();
-      console.log("🗑️", data.message);
-
+      if (!res.ok) throw new Error("Failed to clear results.");
       setResults([]);
     } catch (err) {
       console.error(err);
@@ -144,7 +138,7 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
 
   const schoolImages = {
     "Holy Angel University": "/logos/hau.png",
-    "CELTECH": "/logos/celtech.png",
+    CELTECH: "/logos/celtech.png",
     "Our Lady Of Fatima University": "/logos/fatima.png",
     "University of the Assumption": "/logos/ua.png",
     "Angeles University Foundation": "/logos/auf.png",
@@ -180,34 +174,33 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-[9999] flex justify-center items-start bg-black/60 backdrop-blur-sm overflow-y-auto py-10 px-4 font-poppins">
+    <div className="fixed inset-0 z-9999 flex justify-center items-start bg-black/60 backdrop-blur-sm overflow-y-auto py-10 px-4 font-poppins">
       <div className="relative bg-[#0a1733]/90 backdrop-blur-2xl border border-blue-400/20 rounded-2xl w-full max-w-6xl p-6 text-white shadow-2xl font-poppins">
         {/* Close Button */}
         <button
-  onClick={onClose}
-  className="absolute top-3 right-3 
+          onClick={onClose}
+          className="absolute top-3 right-3 
              text-gray-300 hover:text-red-400 
              transition-all duration-200 
              bg-transparent hover:bg-transparent 
              p-1 rounded-full 
              shadow-none outline-none border-none 
              backdrop-blur-none"
-  style={{
-    backgroundColor: "transparent",
-    boxShadow: "none",
-  }}
->
-  <X size={20} />
-</button>
-
+          style={{
+            backgroundColor: "transparent",
+            boxShadow: "none",
+          }}
+        >
+          <X size={20} />
+        </button>
 
         <h2 className="text-3xl font-bold mb-6 text-center font-poppins">
           Previous Results
         </h2>
 
         <div className="flex justify-end mb-4 font-poppins">
-  <button
-    className="flex items-center gap-2 px-4 py-2
+          <button
+            className="flex items-center gap-2 px-4 py-2
                border border-red-500/70 hover:border-red-500
                text-red-400 hover:text-red-300
                hover:bg-transparent
@@ -215,14 +208,13 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                rounded-md font-semibold text-sm
                transition-all duration-200 font-poppins
                shadow-none"
-    style={{ backgroundColor: "transparent", boxShadow: "none" }}
-    onClick={() => setShowConfirmModal(true)}
-    disabled={loading}
-  >
-    <Trash2 size={16} /> {loading ? "" : "Clear Results"}
-  </button>
-</div>
-
+            style={{ backgroundColor: "transparent", boxShadow: "none" }}
+            onClick={() => setShowConfirmModal(true)}
+            disabled={loading}
+          >
+            <Trash2 size={16} /> {loading ? "" : "Clear Results"}
+          </button>
+        </div>
 
         {loading ? (
           <p className="text-center text-white/70 font-poppins">
@@ -251,15 +243,21 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                       Your Grades
                     </h4>
                     <div className="bg-blue-950/30 p-4 rounded-lg border border-blue-400/10 text-sm grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 font-poppins">
-                      {Object.entries(resItem.grades).map(([subject, grade]) => (
-                        <div
-                          key={subject}
-                          className="flex justify-between items-center bg-blue-900/20 px-3 py-2 rounded-lg border border-blue-400/10"
-                        >
-                          <span className="text-blue-100 font-medium">{subject}</span>
-                          <span className="text-white font-semibold">{grade}</span>
-                        </div>
-                      ))}
+                      {Object.entries(resItem.grades).map(
+                        ([subject, grade]) => (
+                          <div
+                            key={subject}
+                            className="flex justify-between items-center bg-blue-900/20 px-3 py-2 rounded-lg border border-blue-400/10"
+                          >
+                            <span className="text-blue-100 font-medium">
+                              {subject}
+                            </span>
+                            <span className="text-white font-semibold">
+                              {grade}
+                            </span>
+                          </div>
+                        )
+                      )}
                     </div>
                   </div>
                 )}
@@ -270,20 +268,22 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                     Your Previous Answer
                   </h4>
                   <div className="bg-blue-950/30 p-4 rounded-lg border border-blue-400/10 text-sm space-y-1 leading-relaxed font-poppins">
-                    {Object.entries(resItem.answers || {}).map(([key, value]) => (
-                      <div key={key} className="flex gap-1 flex-wrap">
-                        <span className="font-medium capitalize text-blue-100">
-                          {key}:
-                        </span>
-                        <span className="text-white/80 break-words">
-                          {Array.isArray(value)
-                            ? value.join(", ")
-                            : typeof value === "object"
-                            ? JSON.stringify(value)
-                            : value?.toString()}
-                        </span>
-                      </div>
-                    ))}
+                    {Object.entries(resItem.answers || {}).map(
+                      ([key, value]) => (
+                        <div key={key} className="flex gap-1 flex-wrap">
+                          <span className="font-medium capitalize text-blue-100">
+                            {key}:
+                          </span>
+                          <span className="text-white/80 break-words">
+                            {Array.isArray(value)
+                              ? value.join(", ")
+                              : typeof value === "object"
+                              ? JSON.stringify(value)
+                              : value?.toString()}
+                          </span>
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
 
@@ -342,7 +342,9 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                                 {getTuitionDisplay(r.tuition_per_semester)}
                               </td>
                               <td className="py-2 px-3">
-                                {getBoardPassingRateDisplay(r.board_passing_rate)}
+                                {getBoardPassingRateDisplay(
+                                  r.board_passing_rate
+                                )}
                               </td>
                             </tr>
                           ))}

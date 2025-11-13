@@ -34,6 +34,8 @@ function Navbar() {
   const isLoggedIn = !!localStorage.getItem("token");
   const dropdownRef = useRef(null);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -74,7 +76,7 @@ function Navbar() {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      await fetch("http://localhost:8000/delete-account", {
+      await fetch(`${API_BASE_URL}/delete-account`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
