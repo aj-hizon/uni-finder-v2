@@ -17,19 +17,15 @@ function normalize(str) {
 
 function findSchoolData(schoolName, schoolsArray) {
   const normalizedName = normalize(schoolName);
-  return (
-    schoolsArray.find(
-      (school) => normalize(school.school) === normalizedName
-    ) || null
-  );
+  return schoolsArray.find((school) => normalize(school.school) === normalizedName) || null;
 }
+
 
 export default function ComparePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const selectedSchools = location.state?.selectedSchools || [];
   const [schoolsData, setSchoolsData] = useState([]);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // Remove duplicates (case-insensitive)
   const uniqueSchools = Array.from(
@@ -39,46 +35,48 @@ export default function ComparePage() {
   );
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/school-strengths`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        return res.json();
-      })
-      .then((data) => setSchoolsData(data.schools || []))
-      .catch((error) => {
-        console.error("Error fetching school strengths:", error);
-        setSchoolsData([]);
-      });
-  }, [API_BASE_URL]);
+  fetch("http://localhost:8000/api/school-strengths")
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return res.json(); 
+    })
+    .then((data) => setSchoolsData(data.schools || []))
+    .catch((error) => {
+      console.error("Error fetching school strengths:", error);
+      setSchoolsData([]);
+    });
+}, []);
+
 
   const specs = [
-    { label: "Known For", key: "what_theyre_known_for", icon: Star },
-    {
-      label: "Institutional Strengths",
-      key: "institutional_strengths",
-      icon: ListChecks,
-      format: (v) => (v?.length ? v.join(", ") : "No data available"),
-    },
-    {
-      label: "PH Rank",
-      key: "unirank",
-      icon: Award,
-      format: (v) =>
-        v?.central_luzon_rank
-          ? `#${v.central_luzon_rank} Central Luzon`
-          : v?.country_rank && v?.world_rank
-          ? `#${v.country_rank} PH / #${v.world_rank} Global`
-          : "No ranking available",
-    },
-    { label: "Dorm / Apartment", key: "dorm_apartment", icon: Home },
-    { label: "Transport Access", key: "transport_access", icon: Bus },
-    {
-      label: "Scholarships Offered",
-      key: "scholarships_offered",
-      icon: GraduationCap,
-      format: (v) => (v?.length ? v.join(", ") : "No scholarships listed"),
-    },
-  ];
+  { label: "Known For", key: "what_theyre_known_for", icon: Star },
+  {
+    label: "Institutional Strengths",
+    key: "institutional_strengths",
+    icon: ListChecks,
+    format: (v) => (v?.length ? v.join(", ") : "No data available"),
+  },
+  {
+    label: "PH Rank",
+    key: "unirank",
+    icon: Award,
+    format: (v) =>
+      v?.central_luzon_rank
+        ? `#${v.central_luzon_rank} Central Luzon`
+        : v?.country_rank && v?.world_rank
+        ? `#${v.country_rank} PH / #${v.world_rank} Global`
+        : "No ranking available",
+  },
+  { label: "Dorm / Apartment", key: "dorm_apartment", icon: Home },
+  { label: "Transport Access", key: "transport_access", icon: Bus },
+  {
+    label: "Scholarships Offered",
+    key: "scholarships_offered",
+    icon: GraduationCap,
+    format: (v) => (v?.length ? v.join(", ") : "No scholarships listed"),
+  },
+];
+
 
   // Muted, glassy gradient tones (soft, elegant, not neon)
   const softGradients = [
@@ -146,7 +144,7 @@ export default function ComparePage() {
                   )}
 
                   {/* School Name */}
-                  <h2 className="text-xl font-bold text-center mb-4 font-poppins">
+                  <h2 className="text-xl font-bold text-center mb-4 font-Merriweather">
                     {school.school}
                   </h2>
 

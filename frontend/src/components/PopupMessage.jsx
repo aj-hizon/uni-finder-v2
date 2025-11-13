@@ -26,7 +26,8 @@ export default function PopupMessage({ type = "info", message, onClose }) {
       "bg-gradient-to-br from-green-400/40 via-green-500/30 to-green-600/40 text-white shadow-green-800/20",
     error:
       "bg-gradient-to-br from-red-400/40 via-red-500/30 to-red-600/40 text-white shadow-red-800/20",
-    info: "bg-gradient-to-br from-blue-400/40 via-blue-500/30 to-blue-600/40 text-white shadow-blue-800/20",
+    info:
+      "bg-gradient-to-br from-blue-400/40 via-blue-500/30 to-blue-600/40 text-white shadow-blue-800/20",
   };
 
   return (
@@ -36,13 +37,7 @@ export default function PopupMessage({ type = "info", message, onClose }) {
       }`}
     >
       <div className="flex items-center gap-2">
-        <span className="font-medium">
-          {typeof message === "string"
-            ? message
-            : Array.isArray(message)
-            ? message.join(", ")
-            : JSON.stringify(message)}
-        </span>
+        <span className="font-medium">{message}</span>
       </div>
     </div>
   );

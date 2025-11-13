@@ -6,7 +6,7 @@ function Results() {
   const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [message, setMessage] = useState("");
-  
+
   useEffect(() => {
     const storedResults = JSON.parse(localStorage.getItem("results"));
     const storedMessage = localStorage.getItem("message");

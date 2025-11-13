@@ -11,14 +11,16 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [popup, setPopup] = useState(null);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
-    setIsLogin(defaultIsLogin);
-    setEmail("");
-    setPassword("");
-    setFullName("");
-  }, [defaultIsLogin]);
+    if (!isOpen) {
+      setEmail("");
+      setPassword("");
+      setFullName("");
+      setIsLogin(defaultIsLogin);
+      setShowPassword(false);
+    }
+  }, [isOpen, defaultIsLogin]);
 
   if (!isOpen)
     return (
@@ -62,7 +64,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
 
       if (isLogin) {
         // ✅ LOGIN
-        const res = await axios.post(`${API_BASE_URL}/login`, {
+        const res = await axios.post("http://127.0.0.1:8000/login", {
           email,
           password,
         });
@@ -85,7 +87,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
           return;
         }
 
-        await axios.post(`${API_BASE_URL}/register`, {
+        await axios.post("http://127.0.0.1:8000/register", {
           email,
           password,
           full_name: fullName,
@@ -110,21 +112,38 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
   return (
     <>
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center 
+        className="fixed inset-0 z-9999 flex items-center justify-center 
                    min-h-screen bg-black/80 backdrop-blur-sm font-[Poppins] px-4"
         onClick={onClose}
       >
         <div
           className="relative w-full max-w-lg rounded-3xl shadow-2xl 
-                      bg-[#002766] backdrop-blur-md
-                      text-white p-10 flex flex-col items-center font-Poppins"
+                      bg-blue-800/40 backdrop-blur-md
+                      text-white p-10 flex flex-col items-center font-[Poppins]"
           onClick={(e) => e.stopPropagation()}
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"
+            className="absolute top-4 right-4 
+             bg-transparent !bg-none border-none outline-none shadow-none
+             text-blue-300 hover:text-red-400 
+             transition-colors duration-200
+             p-0 m-0 rounded-none"
+            style={{
+              background: "transparent",
+              backdropFilter: "none",
+              WebkitBackdropFilter: "none",
+            }}
           >
-            <X size={24} />
+            <X
+              size={24}
+              className="stroke-current text-blue-300 hover:text-red-400 transition-colors duration-200"
+              style={{
+                background: "transparent",
+                fill: "none",
+                strokeWidth: 1.8,
+              }}
+            />
           </button>
 
           <h1 className="text-base font-semibold leading-tight mb-4 tracking-wide text-white font-poppins">
@@ -167,7 +186,18 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 
+             transition-colors duration-200"
+                style={{
+                  background: "transparent", // ensures no background ever appears
+                  color: "rgb(147, 197, 253)", // Tailwind blue-300
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "rgb(191, 219, 254)")
+                } // blue-200 on hover
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "rgb(147, 197, 253)")
+                } // back to blue-300
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -176,21 +206,34 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg font-medium bg-blue-700 hover:bg-blue-800 
-                         transition-all shadow-md shadow-blue-900/40"
+              className="w-full py-3 rounded-lg font-semibold text-blue-100 
+             bg-blue-700/80 hover:bg-blue-600/80 
+             border border-blue-500/30 
+             shadow-md shadow-blue-900/40 
+             transition-all duration-300 
+             backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: "rgba(30, 64, 175, 0.8)", // force consistent blue tone
+                color: "#dbeafe", // light bluish-white text color
+                borderColor: "rgba(59, 130, 246, 0.3)",
+              }}
             >
               {loading ? "Processing..." : isLogin ? "Login" : "Register"}
             </button>
           </form>
 
-          <div className="text-center mt-6 text-sm text-white">
+          <div className="text-center mt-6 text-sm text-gray-300">
             {isLogin ? (
               <p>
                 Don’t have an account?{" "}
                 <button
                   type="button"
                   onClick={() => setIsLogin(false)}
-                  className="text-blue-400 hover:underline"
+                  className="font-medium text-blue-300 hover:text-blue-200 transition-colors duration-200"
+                  style={{
+                    background: "transparent", // force no background
+                    color: "rgb(147, 197, 253)", // fixed blue-300 color
+                  }}
                 >
                   Register
                 </button>
@@ -201,7 +244,11 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
                 <button
                   type="button"
                   onClick={() => setIsLogin(true)}
-                  className="text-white hover:underline"
+                  className="font-medium text-blue-300 hover:text-blue-200 transition-colors duration-200"
+                  style={{
+                    background: "transparent", // ensure no background ever appears
+                    color: "rgb(147, 197, 253)", // fixed Tailwind blue-300 tone
+                  }}
                 >
                   Login
                 </button>
