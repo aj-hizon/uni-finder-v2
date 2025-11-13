@@ -144,7 +144,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
             />
           </button>
 
-          <h1 className="text-base font-semibold leading-tight mb-4 tracking-wide text-blue-200">
+          <h1 className="text-base font-semibold leading-tight mb-4 tracking-wide text-white font-poppins">
             {isLogin ? "Login" : "Register"}
           </h1>
 
