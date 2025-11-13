@@ -555,20 +555,48 @@ export default function CompareProgram() {
       </div>
 
       {/* Bottom Buttons */}
-      <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center font-Poppins">
-        <button
-          onClick={() => navigate("/results")}
-          className="px-6 py-3 rounded-full bg-blue-800/30 backdrop-blur-md border border-white/30 text-white text-sm font-medium shadow-lg hover:bg-blue-800/40 transition"
-        >
-          Back to Results
-        </button>
-        <button
-          onClick={() => navigate("/Compare", { state: { selectedSchools } })}
-          className="px-6 py-3 rounded-full bg-blue-800/30 backdrop-blur-md border border-white/30 text-white text-sm font-medium shadow-lg hover:bg-blue-800/40 transition"
-        >
-          View More
-        </button>
-      </div>
+<div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center font-Poppins">
+  <button
+    onClick={() => navigate("/results")}
+    className="!px-5 !py-2.5 sm:!px-8 sm:!py-3 
+               !rounded-full 
+               !bg-blue-800/20 
+               !backdrop-blur-md 
+               !border !border-white/30 
+               !text-white text-xs sm:text-sm 
+               font-medium !shadow-lg 
+               hover:!bg-blue-800/30 
+               transition duration-300 ease-in-out 
+               flex items-center justify-center w-full sm:w-auto"
+    style={{
+      WebkitBackdropFilter: "blur(10px)",
+      backdropFilter: "blur(10px)",
+    }}
+  >
+    Back to Results
+  </button>
+
+  <button
+    onClick={() => navigate("/Compare", { state: { selectedSchools } })}
+    className="!px-5 !py-2.5 sm:!px-8 sm:!py-3 
+               !rounded-full 
+               !bg-blue-800/20 
+               !backdrop-blur-md 
+               !border !border-white/30 
+               !text-white text-xs sm:text-sm 
+               font-medium !shadow-lg 
+               hover:!bg-blue-800/30 
+               transition duration-300 ease-in-out 
+               flex items-center justify-center w-full sm:w-auto"
+    style={{
+      WebkitBackdropFilter: "blur(10px)",
+      backdropFilter: "blur(10px)",
+    }}
+  >
+    View More
+  </button>
+</div>
+
     </div>
   );
 }

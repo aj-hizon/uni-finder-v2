@@ -410,62 +410,79 @@ function UniFinder() {
                     </div>
                   </div>
 
-                  {/* Info Button */}
-                  <button
-                    onClick={() => setShowNote(true)}
-                    className="text-white/70 hover:text-blue-300 transition-colors duration-300 
-             flex items-center gap-2 text-sm sm:text-base font-poppins"
-                    title="View note"
-                  >
-                    {/* Icon first */}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.8}
-                      stroke="currentColor"
-                      className="w-6 h-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <span className="hidden sm:inline">Important Note</span>
-                  </button>
+{/* Info Button */}
+<button
+  onClick={() => setShowNote(true)}
+  className="flex items-center gap-2 text-sm sm:text-base font-poppins 
+             text-[#93c5fd] hover:text-[#60a5fa] transition-colors duration-300 
+             bg-transparent border-none outline-none shadow-none"
+  style={{
+    backgroundColor: "transparent",
+    border: "none",
+    boxShadow: "none",
+  }}
+  title="View note"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.8}
+    stroke="currentColor"
+    className="w-5 h-5 sm:w-6 sm:h-6"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+  <span className="hidden sm:inline">Important Note</span>
+</button>
 
-                  {/* Popup Modal */}
-                  {showNote && (
-                    <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
-                      <div
-                        className="bg-gradient-to-br from-blue-950/90 via-blue-900/85 to-blue-950/90 
-                 border border-blue-300/20 rounded-[2rem] shadow-2xl 
-                 p-6 sm:p-8 w-[90%] sm:w-[500px] text-center 
+
+{/* Popup Modal */}
+{showNote && (
+  <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-transparent">
+    <div
+      className="bg-gradient-to-br from-blue-950/90 via-blue-900/85 to-blue-950/90
+                 border border-blue-300/20 rounded-[2rem] shadow-2xl
+                 p-6 sm:p-8 w-[90%] sm:w-[500px] text-center
                  animate-in fade-in duration-200"
-                      >
-                        <h3 className="text-white font-semibold text-lg sm:text-xl mb-3 font-inter">
-                          Why grades aren’t everything
-                        </h3>
-                        <p className="text-white/70 font-poppins leading-relaxed text-[0.9rem] sm:text-base">
-                          Your grades don’t define your potential — they simply
-                          guide the system in understanding your strengths. A
-                          low grade in one subject doesn’t mean you can’t thrive
-                          in that field. What truly matters is your passion,
-                          effort, and curiosity to keep learning.
-                        </p>
-                        <button
-                          onClick={() => setShowNote(false)}
-                          className="mt-6 px-5 py-2.5 rounded-lg bg-blue-500/20 hover:bg-blue-400/30 
-                   border border-blue-300/30 text-blue-200 font-medium font-poppins 
-                   transition-all duration-300"
-                        >
-                          Got it
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+    >
+      <h3 className="text-white font-semibold text-lg sm:text-xl mb-3 font-inter">
+        Why grades aren’t everything
+      </h3>
+
+      <p className="text-white/70 font-poppins leading-relaxed text-[0.9rem] sm:text-base">
+        Your grades don’t define your potential — they simply guide the system in understanding 
+        your strengths. A low grade in one subject doesn’t mean you can’t thrive in that field. 
+        What truly matters is your passion, effort, and curiosity to keep learning.
+      </p>
+
+    <button
+  onClick={() => setShowNote(false)}
+  className="mt-6 px-4 py-2 rounded-lg
+             bg-blue-500/10 hover:bg-blue-500/20
+             border border-blue-300/30 text-blue-200
+             font-medium font-poppins
+             backdrop-blur-sm
+             transition-colors duration-200 ease-in-out
+             focus:outline-none focus:ring-2 focus:ring-blue-400/40
+             shadow-none"
+>
+  Got it
+</button>
+
+
+    </div>
+  </div>
+)}
+
+
+</div>
+
+
 
                 {/* Subjects Grid (2 Columns) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -540,50 +557,59 @@ function UniFinder() {
                           />
                         </div>
 
-                        {/* Delete Button */}
-                        {Object.keys(grades).length > 1 && (
-                          <button
-                            onClick={() => {
-                              setGrades((prev) => {
-                                const updated = { ...prev };
-                                delete updated[subject];
-                                return updated;
-                              });
-                            }}
-                            className="text-red-400/80 hover:text-red-300 transition text-lg font-semibold"
-                            title="Remove subject"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              {/* Delete Button */}
+              {Object.keys(grades).length > 1 && (
+                <button
+  onClick={() => {
+    setGrades((prev) => {
+      const updated = { ...prev };
+      delete updated[subject];
+      return updated;
+    });
+  }}
+  className="!bg-transparent !border-none !outline-none !shadow-none !ring-0 text-[#e11d48] hover:text-[#fb7185] transition text-lg font-semibold"
+  style={{
+    backgroundColor: "transparent",
+    border: "none",
+    boxShadow: "none",
+  }}
+  title="Remove subject"
+>
+  ✕
+</button>
 
-                {/* Add Subject Button */}
-                {Object.keys(grades).length < 8 && (
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => {
-                        const newSubjectName = `Subject ${
-                          Object.keys(grades).length + 1
-                        }`;
-                        setGrades((prev) => ({
-                          ...prev,
-                          [newSubjectName]: "",
-                        }));
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-400/10 border border-blue-300/20 
-                       hover:bg-blue-400/20 text-blue-300 font-medium font-poppins text-sm sm:text-base 
-                       transition-all duration-200 shadow-sm hover:shadow-blue-400/20"
-                    >
-                      <span className="text-lg leading-none">＋</span>
-                      Add Subject
-                    </button>
-                  </div>
-                )}
-              </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Add Subject Button */}
+{Object.keys(grades).length < 8 && (
+  <div className="flex justify-end mt-3">
+    <button
+      onClick={() => {
+        const newSubjectName = `Subject ${Object.keys(grades).length + 1}`;
+        setGrades((prev) => ({ ...prev, [newSubjectName]: "" }));
+      }}
+      className="flex items-center gap-1.5 
+                 px-3 py-1.5 sm:px-4 sm:py-2
+                 rounded-lg 
+                 text-xs sm:text-sm 
+                 font-poppins text-white
+                 border border-white/20 backdrop-blur-sm transition
+                 hover:border-blue-300 hover:bg-blue-400/20
+                 disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{ backgroundColor: "rgba(59, 130, 246, 0.15)" }}
+    >
+      <span className="text-base leading-none text-blue-300">＋</span>
+      Add Subject
+    </button>
+  </div>
+)}
+
+
+    </div>
 
               {/* Continue Button */}
               <div className="flex justify-end mt-8">
