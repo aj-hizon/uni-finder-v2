@@ -311,8 +311,8 @@ if (step === 1) {
         Enter & Customize Your Core Grades
       </h2>
       <p className="text-[clamp(0.8rem,1.5vw,1rem)] text-white/60 font-poppins mt-1.5 leading-relaxed max-w-2xl">
-        Input your latest grades — edit subjects or add up to
-        <span className="text-blue-300 font-medium"> 8 subjects</span>.
+       Entering your grades is optional — it’s up to you. For example, Probability and Statistics = Math.
+        <span className="text-blue-300 font-medium"> This just helps the system better understand your strengths.</span>.
       </p>
     </div>
   </div>
@@ -485,30 +485,7 @@ if (step === 1) {
         ))}
       </div>
 
-      {/* Add Subject Button */}
-{Object.keys(grades).length < 8 && (
-  <div className="flex justify-end mt-3">
-    <button
-      onClick={() => {
-        const newSubjectName = `Subject ${Object.keys(grades).length + 1}`;
-        setGrades((prev) => ({ ...prev, [newSubjectName]: "" }));
-      }}
-      className="flex items-center gap-1.5 
-                 px-3 py-1.5 sm:px-4 sm:py-2
-                 rounded-lg 
-                 text-xs sm:text-sm 
-                 font-poppins text-white
-                 border border-white/20 backdrop-blur-sm transition
-                 hover:border-blue-300 hover:bg-blue-400/20
-                 disabled:opacity-50 disabled:cursor-not-allowed"
-      style={{ backgroundColor: "rgba(59, 130, 246, 0.15)" }}
-    >
-      <span className="text-base leading-none text-blue-300">＋</span>
-      Add Subject
-    </button>
-  </div>
-)}
-
+      
 
     </div>
 
