@@ -85,7 +85,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
           return;
         }
 
-        await axios.post("http://127.0.0.1:8000/register", {
+        await axios.post(`${API_BASE_URL}/register`, {
           email,
           password,
           full_name: fullName,
