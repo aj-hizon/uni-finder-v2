@@ -58,7 +58,7 @@ function Navbar() {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      await fetch("http://localhost:8000/logout", {
+      await fetch(`${API_BASE_URL}/logout`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
