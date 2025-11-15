@@ -47,12 +47,14 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     print(f"Incoming request: {request.method} {request.url}")
     response = await call_next(request)
     print(f"Response status: {response.status_code}")
     return response
+
 
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
@@ -116,7 +118,7 @@ async def search(
     request_data: SearchRequest,
     current_user: Optional[dict] = Depends(get_current_user_optional),
 ):
-    
+
     user_email = current_user["email"] if current_user else "guest"
     print(user_email)
 
@@ -238,7 +240,7 @@ async def get_school_strengths():
         docs = list(collection.find({}, {"_id": 0}))
         return JSONResponse(content={"schools": docs})
     except Exception as e:
-        print(f"❌ Error fetching school_strengths: {e}")
+        print(f"Error fetching school_strengths: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Database error while fetching school strengths: {e}",
@@ -252,7 +254,7 @@ async def get_school_rankings():
         doc = collection.find_one({}, {"_id": 0})
         return JSONResponse(content=doc if doc else {}, status_code=200)
     except Exception as e:
-        print(f"❌ Error fetching school_rankings: {e}")
+        print(f"Error fetching school_rankings: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Database error while fetching school rankings: {e}",

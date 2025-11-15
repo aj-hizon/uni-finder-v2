@@ -1432,7 +1432,7 @@ programs = [
     "school_website": "https://www.fatima.edu.ph",
     "location": "San Fernando, Pampanga",
     "school_type": "Private",
-    "board_passing_rate" : "90%",
+    "board_passing_rate" : "47.62%",
     "category" : "Accounting",
     "tuition_notes" : "Miscellaneous and other fees are not yet included and may vary depending on the chosen program."
   },
