@@ -1,0 +1,12 @@
+[
+  {
+    "email": "admin@unifinder.com",
+    "password": "admin123",
+    "full_name": "Main Admin"
+  },
+  {
+    "email": "staff@unifinder.com",
+    "password": "staff123",
+    "full_name": "Staff Admin"
+  }
+]

@@ -9,9 +9,24 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from dotenv import load_dotenv
-
+from fastapi import FastAPI, Depends, HTTPException, Header
 from db import db
 from recommendation import recommend
+from typing import Optional
+from bson import ObjectId
+from typing import List
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Body
+from fastapi import UploadFile, File
+import shutil
+import os
+from sentence_transformers import SentenceTransformer
+
+# Load 768-dimension sentence transformer
+embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+
+
 
 # --- Auth Setup ---
 security = HTTPBearer()
@@ -52,6 +67,49 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+admin_token_blacklist = set()
+
+# Dummy function to decode and verify admin JWT
+def decode_admin_token(token: str):
+    # Replace with your actual JWT decode logic
+    try:
+        # Example: decode and verify token
+        payload = {"sub": "admin@example.com"}  # Dummy payload
+        return payload
+    except:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    
+def create_admin_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({
+        "exp": expire,
+        "admin": True
+    })
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        if payload.get("admin") != True:
+            raise HTTPException(status_code=403, detail="Admin access required")
+
+        email = payload.get("sub")
+        admin = db["admin_users"].find_one({"email": email})
+
+        if not admin:
+            raise HTTPException(status_code=404, detail="Admin not found")
+
+        return admin
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+
+
+
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
@@ -337,4 +395,179 @@ async def clear_results(current_user=Depends(get_current_user)):
 
 
     
-    
+# -----------------------------
+# ADMIN LOGIN
+# -----------------------------
+@app.post("/admin/login")
+async def admin_login(credentials: dict):
+    email = credentials.get("email")
+    password = credentials.get("password")
+
+    admin = db["admin_users"].find_one({"email": email})
+    if not admin or not bcrypt.verify(password, admin["password"]):
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+
+    access_token = create_admin_token({"sub": admin["email"]})
+
+    return {
+        "access_token": access_token,
+        "admin": {
+            "email": admin["email"],
+            "full_name": admin["full_name"]
+        }
+    }
+
+
+# -----------------------------
+# ADMIN LOGOUT
+# -----------------------------
+@app.post("/admin/logout")
+async def admin_logout(authorization: Optional[str] = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+
+    token = authorization.split(" ")[1]
+
+    try:
+        decode_admin_token(token)
+    except:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    admin_token_blacklist.add(token)
+
+    return {"message": "Admin logged out successfully"}
+
+
+# -----------------------------
+# HELPER FUNCTIONS
+# -----------------------------
+def serialize_doc(doc):
+    doc = dict(doc)
+    doc["id"] = str(doc["_id"])
+    doc.pop("_id", None)
+    return doc
+
+
+
+def generate_vector(text: str):
+    if not text:
+        return []
+    return embedding_model.encode(text).tolist()  # ALWAYS 768 dims
+
+
+# ---------------------------------------
+# GET all programs (without vectors)
+# ---------------------------------------
+@app.get("/admin/program_vectors")
+async def get_all_program_vectors():
+    programs = list(db["program_vectors"].find({}, {"vector": 0}))
+    return [serialize_doc(p) for p in programs]
+
+# ---------------------------------------
+# GET recent programs
+# ---------------------------------------
+@app.get("/admin/program_vectors/recent")
+async def get_recent_programs():
+    programs = list(
+        db["program_vectors"]
+        .find({}, {"vector": 0})
+        .sort("updated_at", -1)
+        .limit(5)
+    )
+    return [serialize_doc(p) for p in programs]
+
+
+# ---------------------------------------
+# GET program by ID
+# ---------------------------------------
+@app.get("/admin/program_vectors/{program_id}")
+async def get_program(program_id: str):
+    try:
+        oid = ObjectId(program_id)
+    except:
+        raise HTTPException(status_code=400, detail="Invalid program ID")
+
+    program = db["program_vectors"].find_one({"_id": oid}, {"vector": 0})
+    if not program:
+        raise HTTPException(status_code=404, detail="Program not found")
+
+    return serialize_doc(program)
+
+
+
+# ---------------------------------------
+# CREATE program (auto-embed)
+# ---------------------------------------
+@app.post("/admin/program_vectors")
+async def create_program(program: dict):
+    description = program.get("description", "")
+
+    # 768-dim vector
+    program["vector"] = generate_vector(description)
+
+    program["created_at"] = datetime.utcnow()
+    program["updated_at"] = datetime.utcnow()
+
+    result = db["program_vectors"].insert_one(program)
+    program["id"] = str(result.inserted_id)
+
+    # Remove raw ObjectId for JSON safety
+    if "_id" in program:
+        del program["_id"]
+
+    return program
+
+# ---------------------------------------
+# UPDATE program (auto-embed if changed)
+# ---------------------------------------
+@app.put("/admin/program_vectors/{program_id}")
+async def update_program(program_id: str, updates: dict):
+    try:
+        oid = ObjectId(program_id)
+    except:
+        raise HTTPException(status_code=400, detail="Invalid program ID")
+
+    existing = db["program_vectors"].find_one({"_id": oid})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Program not found")
+
+    new_description = updates.get("description")
+
+    if new_description and new_description != existing.get("description"):
+        updates["vector"] = generate_vector(new_description)
+
+    updates["updated_at"] = datetime.utcnow()
+
+    db["program_vectors"].update_one({"_id": oid}, {"$set": updates})
+
+    updated = db["program_vectors"].find_one({"_id": oid})
+    return serialize_doc(updated)
+
+
+# ---------------------------------------
+# DELETE program
+# ---------------------------------------
+@app.delete("/admin/program_vectors/{program_id}")
+async def delete_program(program_id: str):
+    try:
+        oid = ObjectId(program_id)
+    except:
+        raise HTTPException(status_code=400, detail="Invalid program ID")
+
+    result = db["program_vectors"].delete_one({"_id": oid})
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Program not found")
+
+    return {"status": "success"}
+
+LOGO_FOLDER = "../frontend/public/logos"  # adjust path to your frontend folder
+
+@app.post("/admin/upload_logo")
+async def upload_logo(file: UploadFile = File(...)):
+    file_location = os.path.join(LOGO_FOLDER, file.filename)
+    with open(file_location, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    return {"filename": file.filename, "url": f"/logos/{file.filename}"}
+
+

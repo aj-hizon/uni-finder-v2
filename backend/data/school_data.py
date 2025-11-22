@@ -2519,8 +2519,7 @@ programs = [
   "school": "Pampanga State University",
   "school_logo": "/logos/psu.png",
   "name": "Bachelor of Science in Accountancy",
-  "description": "Offers core knowledge in financial accounting, auditing, taxation, and managerial accounting. Geared toward accountancy and the finance sector. Students complete audit reports, financial statements, and tax computations. Graduates aim to become Certified Public Accountants (CPAs) or finance professionals. The environment is detail-oriented, highly technical, and exam-focused.",
-  "tuition_per_semester": None,
+  "description": "The Bachelor of Science in Accountancy program at Pampanga State University provides a rigorous and comprehensive education in accounting principles and practices. The curriculum strengthens knowledge in financial and managerial accounting, auditing, taxation, and business law, while developing analytical thinking and ethical standards. Students acquire technical skills and competencies to interpret financial data, ensure compliance, and support business decisions. The program emphasizes practical learning through case studies, internships, and hands-on exercises. It also prepares students for the Certified Public Accountant (CPA) licensure examination.",
   "tuition_annual": None,
   "admission_requirements": "High school diploma and entrance exam.",
   "grade_requirements": "At least 80% GwA ",
@@ -5296,7 +5295,7 @@ programs = [
   {
     "school": "Angeles University Foundation",
     "school_logo": "/logos/auf.png",
-    "name": "Bachelor of Science in BS Accountancy",
+    "name": "Bachelor of Science in Accountancy",
     "description": "The Bachelor of Science in Accountancy program at Angeles University Foundation provides a rigorous and comprehensive education in the principles and practices of accounting. The curriculum is designed to build strong foundations in financial and managerial accounting, auditing, taxation, and business law, while also integrating analytical thinking and ethical standards. Students are equipped with the technical skills and professional competencies needed to interpret financial data, ensure regulatory compliance, and support strategic business decisions. The program prepares graduates for the Certified Public Accountant (CPA) licensure examination and opens pathways to careers in public accounting, corporate finance, internal auditing, government service, consultancy, or academia. AUF’s program also emphasizes real-world application through case studies, internships, and CPA board exam preparation.",
     "tuition_per_semester": 60132,
     "tuition_annual": 120264,
