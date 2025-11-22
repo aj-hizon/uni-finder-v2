@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 
@@ -130,6 +131,7 @@ const ProgramCard = ({ program, onEdit, onDelete }) => (
 );
 
 const Management = () => {
+  const navigate = useNavigate();
   const [programs, setPrograms] = useState([]);
   const [recentPrograms, setRecentPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -155,18 +157,29 @@ const Management = () => {
   const [editingProgram, setEditingProgram] = useState(null);
   const [formData, setFormData] = useState({});
 
-  // Message state
+  // Toast message
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
 
   const triggerMessage = (text) => {
     setMessage(text);
     setShowMessage(true);
-    setTimeout(() => {
-      setShowMessage(false);
-    }, 3000);
+    setTimeout(() => setShowMessage(false), 3000);
   };
 
+  // ---------------------------
+  // ADMIN PROTECTION
+  // ---------------------------
+  useEffect(() => {
+    const adminToken = localStorage.getItem("admin_token");
+    if (!adminToken) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
+
+  // ---------------------------
+  // Fetch Programs
+  // ---------------------------
   const fetchPrograms = async () => {
     try {
       const res = await axios.get("http://localhost:8000/admin/program_vectors");
@@ -277,9 +290,8 @@ const Management = () => {
       {/* Toast message */}
       {showMessage && (
         <div className="fixed top-6 right-6 bg-green-400/30 backdrop-blur-md border border-green-300 text-white px-4 py-2 rounded shadow-lg z-50 transition-opacity duration-300">
-  {message}
-</div>
-
+          {message}
+        </div>
       )}
 
       <div className="pt-32 px-4 sm:px-8 relative z-10">
