@@ -19,21 +19,22 @@ function ConfirmationModal({
       <div className="bg-[#0a1733]/90 border border-blue-400/20 rounded-2xl p-6 w-full max-w-md text-white shadow-2xl relative font-poppins">
         {/* Close Button */}
         <button
-          onClick={onClose}
-          className="absolute top-3 right-3 
+  onClick={onClose}
+  className="absolute top-3 right-3 
              text-gray-300 hover:text-red-400 
              transition-all duration-200 
              bg-transparent hover:bg-transparent 
              p-1 rounded-full 
              shadow-none outline-none border-none 
              backdrop-blur-none"
-          style={{
-            backgroundColor: "transparent",
-            boxShadow: "none",
-          }}
-        >
-          <X size={20} />
-        </button>
+  style={{
+    backgroundColor: "transparent",
+    boxShadow: "none",
+  }}
+>
+  <X size={20} />
+</button>
+
 
         <h3 className="text-xl font-bold mb-3 text-center font-poppins">
           {title}
@@ -178,29 +179,30 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
       <div className="relative bg-[#0a1733]/90 backdrop-blur-2xl border border-blue-400/20 rounded-2xl w-full max-w-6xl p-6 text-white shadow-2xl font-poppins">
         {/* Close Button */}
         <button
-          onClick={onClose}
-          className="absolute top-3 right-3 
+  onClick={onClose}
+  className="absolute top-3 right-3 
              text-gray-300 hover:text-red-400 
              transition-all duration-200 
              bg-transparent hover:bg-transparent 
              p-1 rounded-full 
              shadow-none outline-none border-none 
              backdrop-blur-none"
-          style={{
-            backgroundColor: "transparent",
-            boxShadow: "none",
-          }}
-        >
-          <X size={20} />
-        </button>
+  style={{
+    backgroundColor: "transparent",
+    boxShadow: "none",
+  }}
+>
+  <X size={20} />
+</button>
+
 
         <h2 className="text-3xl font-bold mb-6 text-center font-poppins">
           Previous Results
         </h2>
 
         <div className="flex justify-end mb-4 font-poppins">
-          <button
-            className="flex items-center gap-2 px-4 py-2
+  <button
+    className="flex items-center gap-2 px-4 py-2
                border border-red-500/70 hover:border-red-500
                text-red-400 hover:text-red-300
                hover:bg-transparent
@@ -208,13 +210,14 @@ export default function PreviousResultsModal({ isOpen, onClose }) {
                rounded-md font-semibold text-sm
                transition-all duration-200 font-poppins
                shadow-none"
-            style={{ backgroundColor: "transparent", boxShadow: "none" }}
-            onClick={() => setShowConfirmModal(true)}
-            disabled={loading}
-          >
-            <Trash2 size={16} /> {loading ? "" : "Clear Results"}
-          </button>
-        </div>
+    style={{ backgroundColor: "transparent", boxShadow: "none" }}
+    onClick={() => setShowConfirmModal(true)}
+    disabled={loading}
+  >
+    <Trash2 size={16} /> {loading ? "" : "Clear Results"}
+  </button>
+</div>
+
 
         {loading ? (
           <p className="text-center text-white/70 font-poppins">

@@ -11,46 +11,31 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [popup, setPopup] = useState(null);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [role, setRole] = useState("user");
 
   useEffect(() => {
     setIsLogin(defaultIsLogin);
     setEmail("");
     setPassword("");
     setFullName("");
+    setRole("user");
   }, [defaultIsLogin]);
 
   if (!isOpen)
-    return (
-      <>
-        {popup && (
-          <PopupMessage
-            type={popup.type}
-            message={popup.message}
-            onClose={() => setPopup(null)}
-          />
-        )}
-      </>
+    return popup && (
+      <PopupMessage type={popup.type} message={popup.message} onClose={() => setPopup(null)} />
     );
 
-  // ✅ Password strength validator
-  const isPasswordStrong = (password) => {
-    const pattern =
-      /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>/?]).{8,}$/;
-    return pattern.test(password);
-  };
+  const isPasswordStrong = (password) =>
+    /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>/?]).{8,}$/.test(password);
 
-  // ✅ Email validator
-  const isEmailValid = (email) => {
-    return email.includes("@") && email.endsWith(".com");
-  };
+  const isEmailValid = (email) => email.includes("@") && email.endsWith(".com");
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // ✅ Check email format for both login and register
       if (!isEmailValid(email)) {
         setPopup({
           type: "error",
@@ -61,20 +46,25 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
       }
 
       if (isLogin) {
-        // ✅ LOGIN
-        const res = await axios.post(`${API_BASE_URL}/login`, {
-          email,
-          password,
-        });
+        const endpoint =
+          role === "admin"
+            ? "http://127.0.0.1:8000/admin/login"
+            : "http://127.0.0.1:8000/login";
 
-        const { access_token, user } = res.data;
-        localStorage.setItem("token", access_token);
-        localStorage.setItem("user", JSON.stringify(user));
+        const res = await axios.post(endpoint, { email, password });
+        const { access_token, user, admin } = res.data;
+
+        if (role === "admin") {
+          localStorage.setItem("admin_token", access_token);
+          localStorage.setItem("admin", JSON.stringify(admin));
+        } else {
+          localStorage.setItem("token", access_token);
+          localStorage.setItem("user", JSON.stringify(user));
+        }
 
         setPopup({ type: "success", message: "Login successful!" });
         setTimeout(onClose, 300);
       } else {
-        // ✅ REGISTER
         if (!isPasswordStrong(password)) {
           setPopup({
             type: "error",
@@ -110,43 +100,44 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
   return (
     <>
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center 
-                   min-h-screen bg-black/80 backdrop-blur-sm font-[Poppins] px-4"
+        className="fixed inset-0 z-[9999] flex items-center justify-center min-h-screen bg-black/80 backdrop-blur-sm font-[Poppins] px-4"
         onClick={onClose}
       >
         <div
-          className="relative w-full max-w-lg rounded-3xl shadow-2xl 
-                      bg-blue-800/40 backdrop-blur-md
-                      text-white p-10 flex flex-col items-center font-[Poppins]"
+          className="relative w-full max-w-lg rounded-3xl shadow-2xl bg-blue-800/50 backdrop-blur-md text-white p-10 flex flex-col items-center"
           onClick={(e) => e.stopPropagation()}
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 
-             bg-transparent !bg-none border-none outline-none shadow-none
-             text-blue-300 hover:text-red-400 
-             transition-colors duration-200
-             p-0 m-0 rounded-none"
-            style={{
-              background: "transparent",
-              backdropFilter: "none",
-              WebkitBackdropFilter: "none",
-            }}
+            className="absolute top-4 right-4 text-blue-300 hover:text-red-400 transition-colors duration-200"
           >
-            <X
-              size={24}
-              className="stroke-current text-blue-300 hover:text-red-400 transition-colors duration-200"
-              style={{
-                background: "transparent",
-                fill: "none",
-                strokeWidth: 1.8,
-              }}
-            />
+            <X size={24} style={{ fill: "none", strokeWidth: 1.8 }} />
           </button>
 
-          <h1 className="text-base font-semibold leading-tight mb-4 tracking-wide text-white font-poppins">
-            {isLogin ? "Login" : "Register"}
-          </h1>
+          <h1 className="text-lg font-semibold mb-6 text-blue-200">{isLogin ? "Login" : "Register"}</h1>
+
+          {isLogin && (
+            <div className="flex space-x-4 mb-4 w-full">
+              <button
+                type="button"
+                onClick={() => setRole("user")}
+                className={`flex-1 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                  role === "user" ? "bg-blue-600 text-white" : "bg-white/10 text-blue-200 hover:bg-white/20"
+                }`}
+              >
+                User
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("admin")}
+                className={`flex-1 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                  role === "admin" ? "bg-blue-600 text-white" : "bg-white/10 text-blue-200 hover:bg-white/20"
+                }`}
+              >
+                Admin
+              </button>
+            </div>
+          )}
 
           <form onSubmit={handleAuth} className="w-full space-y-4">
             {!isLogin && (
@@ -155,8 +146,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
                 placeholder="Full Name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             )}
@@ -166,8 +156,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 
-                         focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
 
@@ -177,25 +166,13 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 
-                           focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                className="w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 
-             transition-colors duration-200"
-                style={{
-                  background: "transparent", // ensures no background ever appears
-                  color: "rgb(147, 197, 253)", // Tailwind blue-300
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "rgb(191, 219, 254)")
-                } // blue-200 on hover
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "rgb(147, 197, 253)")
-                } // back to blue-300
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-300 hover:text-blue-100 transition-colors duration-200"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -204,17 +181,7 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg font-semibold text-blue-100 
-             bg-blue-700/80 hover:bg-blue-600/80 
-             border border-blue-500/30 
-             shadow-md shadow-blue-900/40 
-             transition-all duration-300 
-             backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: "rgba(30, 64, 175, 0.8)", // force consistent blue tone
-                color: "#dbeafe", // light bluish-white text color
-                borderColor: "rgba(59, 130, 246, 0.3)",
-              }}
+              className="w-full py-3 rounded-lg font-semibold text-blue-100 bg-blue-700/80 hover:bg-blue-600/80 border border-blue-500/30 shadow-md shadow-blue-900/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Processing..." : isLogin ? "Login" : "Register"}
             </button>
@@ -228,41 +195,29 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
                   type="button"
                   onClick={() => setIsLogin(false)}
                   className="font-medium text-blue-300 hover:text-blue-200 transition-colors duration-200"
-                  style={{
-                    background: "transparent", // force no background
-                    color: "rgb(147, 197, 253)", // fixed blue-300 color
-                  }}
                 >
                   Register
                 </button>
               </p>
             ) : (
-              <p>
-                Already have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(true)}
-                  className="font-medium text-blue-300 hover:text-blue-200 transition-colors duration-200"
-                  style={{
-                    background: "transparent", // ensure no background ever appears
-                    color: "rgb(147, 197, 253)", // fixed Tailwind blue-300 tone
-                  }}
-                >
-                  Login
-                </button>
-              </p>
+              role === "user" && (
+                <p>
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => setIsLogin(true)}
+                    className="font-medium text-blue-300 hover:text-blue-200 transition-colors duration-200"
+                  >
+                    Login
+                  </button>
+                </p>
+              )
             )}
           </div>
         </div>
       </div>
 
-      {popup && (
-        <PopupMessage
-          type={popup.type}
-          message={popup.message}
-          onClose={() => setPopup(null)}
-        />
-      )}
+      {popup && <PopupMessage type={popup.type} message={popup.message} onClose={() => setPopup(null)} />}
     </>
   );
 }

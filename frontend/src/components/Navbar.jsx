@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   GraduationCap,
@@ -22,6 +22,9 @@ import PreviousResultsModal from "./PreviousResultsModal";
 
 function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState(true);
@@ -31,10 +34,12 @@ function Navbar() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
   const [popupVisible, setPopupVisible] = useState(false);
-  const isLoggedIn = !!localStorage.getItem("token");
-  const dropdownRef = useRef(null);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  // Determine login & role
+  const user = JSON.parse(localStorage.getItem("user"));
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const isLoggedIn = !!user || !!admin;
+  const isAdmin = !!admin;
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -55,10 +60,18 @@ function Navbar() {
 
   // Logout
   const handleLogout = async () => {
-    const token = localStorage.getItem("token");
+    const token = isAdmin
+      ? localStorage.getItem("admin_token")
+      : localStorage.getItem("token");
+
+    const endpoint = isAdmin
+      ? "http://localhost:8000/admin/logout"
+      : "http://localhost:8000/logout";
+
     if (!token) return;
+
     try {
-      await fetch(`${API_BASE_URL}/logout`, {
+      await fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -71,7 +84,7 @@ function Navbar() {
     }
   };
 
-  // Delete Account
+  // Delete Account (users only)
   const handleDeleteAccount = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -94,20 +107,19 @@ function Navbar() {
     { to: "/unifinder", icon: Search, text: "Find Programs" },
   ];
 
-  // Inline style objects to force colors (highest specificity)
-  const dropdownContainerStyle = {
-    backgroundColor: "rgba(0,60,143,0.9)", // #003C8F 90% as RGBA
-    color: "#ffffff",
-    // keep glassy effect
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
-  };
-
+  // Dark theme styles
   const navbarStyle = {
-    backgroundColor: "rgba(0,39,102,0.95)", // #002766 95%
+    backgroundColor: "rgba(0,39,102,0.95)", // #002766
     color: "#ffffff",
     backdropFilter: "blur(6px)",
     WebkitBackdropFilter: "blur(6px)",
+  };
+
+  const dropdownContainerStyle = {
+    backgroundColor: "rgba(0,60,143,0.9)", // #003C8F
+    color: "#ffffff",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
   };
 
   const modalContainerStyle = {
@@ -129,9 +141,9 @@ function Navbar() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
               className="fixed top-6 left-1/2 transform -translate-x-1/2 z-[9999]
-                bg-blue-500/20 backdrop-blur-md border border-blue-400/30
-                text-white px-6 py-3 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.3)]
-                font-medium"
+                         bg-blue-500/20 backdrop-blur-md border border-blue-400/30
+                         text-white px-6 py-3 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.3)]
+                         font-medium"
             >
               {popupMessage}
             </motion.div>
@@ -145,7 +157,7 @@ function Navbar() {
         <nav
           style={navbarStyle}
           className="flex items-center justify-between w-[95%] xs:w-[90%] sm:w-[85%] md:w-[80%] lg:w-[70%] xl:w-[60%] 
-                        px-3 sm:px-5 py-2 sm:py-3 rounded-full text-white shadow-lg border border-blue-800/40"
+                     px-3 sm:px-5 py-2 sm:py-3 rounded-full shadow-lg border border-blue-800/40"
         >
           <Link to="/" className="flex items-center space-x-2 text-white">
             <GraduationCap className="w-6 xs:w-7 h-6 xs:h-7 text-white drop-shadow-lg" />
@@ -184,31 +196,18 @@ function Navbar() {
             })}
 
             {/* Account Dropdown */}
-            
-{/* Account Dropdown */}
-<div className="relative" ref={dropdownRef}>
-  <motion.button
-    whileTap={{ scale: 0.95 }}
-    onClick={() => setShowAccountMenu((prev) => !prev)}
-    type="button"
-    className="flex items-center space-x-2 px-2 sm:px-3 py-1 rounded-full 
-               font-semibold text-sm sm:text-base 
-               transition-all duration-300
-               bg-transparent hover:bg-blue-400/10 
-               text-blue-100 hover:text-blue-300 
-               border border-transparent focus:outline-none"
-    style={{
-      backgroundColor: "transparent",
-      color: "#bfdbfe", // soft blue that’s visible in both modes
-      border: "none",
-      boxShadow: "none",
-    }}
-  >
-    <User
-      className="w-5 h-5 sm:w-6 sm:h-6 pointer-events-none"
-      style={{ color: "#bfdbfe" }}
-    />
-  </motion.button>
+            <div className="relative" ref={dropdownRef}>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowAccountMenu((prev) => !prev)}
+                type="button"
+                className="flex items-center space-x-2 px-2 sm:px-3 py-1 rounded-full 
+                           font-semibold text-sm sm:text-base 
+                           transition-all duration-300
+                           bg-transparent hover:bg-blue-400/10 text-blue-100 border border-transparent focus:outline-none"
+              >
+                <User className="w-5 h-5 sm:w-6 sm:h-6 pointer-events-none" style={{ color: "#bfdbfe" }} />
+              </motion.button>
               <AnimatePresence>
                 {showAccountMenu && (
                   <motion.div
@@ -216,7 +215,6 @@ function Navbar() {
                     animate={{ opacity: 1, y: 12 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.25 }}
-                    // inline style forces the background + text color
                     style={dropdownContainerStyle}
                     className="absolute right-0 mt-4 w-60 rounded-2xl shadow-lg border border-blue-800/40 overflow-hidden z-50"
                   >
@@ -247,6 +245,30 @@ function Navbar() {
                           style={{ color: "#fff", backgroundColor: "transparent" }}
                         >
                           <UserPlus className="w-5 h-5" /> Register
+                        </button>
+                      </>
+                    ) : isAdmin ? (
+                      <>
+                        <button
+                          type="button"
+                          className="flex items-center gap-3 w-full text-left px-5 py-3 text-white hover:bg-blue-800/60 transition"
+                          onClick={() => {
+                            navigate("/management");
+                            setShowAccountMenu(false);
+                          }}
+                        >
+                          <FileText className="w-5 h-5" /> Management Page
+                        </button>
+
+                        <button
+                          type="button"
+                          className="flex items-center gap-3 w-full text-left px-5 py-3 text-white hover:bg-blue-800/60 transition"
+                          onClick={() => {
+                            setShowLogoutConfirm(true);
+                            setShowAccountMenu(false);
+                          }}
+                        >
+                          <LogOut className="w-5 h-5" /> Logout
                         </button>
                       </>
                     ) : (
@@ -289,7 +311,7 @@ function Navbar() {
 
                         <button
                           type="button"
-                          className="flex items-center gap-3 w-full text-left px-5 py-3 text-white hover:bg-red-700/70 transition"
+                          className="flex items-center gap-3 w-full text-left px-5 py-3 text-white bg-red-600 hover:bg-red-700 transition"
                           onClick={() => {
                             setShowDeleteConfirm(true);
                             setShowAccountMenu(false);
@@ -323,69 +345,51 @@ function Navbar() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
                 style={modalContainerStyle}
-                className="relative backdrop-blur-lg border border-blue-400/40 text-white p-8 rounded-3xl shadow-2xl text-center w-[90%] max-w-sm"
+                className="relative backdrop-blur-lg border border-blue-800/40 p-8 rounded-3xl shadow-2xl text-center w-[90%] max-w-sm"
               >
                 <button
-  onClick={() => {
-    setShowLogoutConfirm(false);
-    setShowDeleteConfirm(false);
-  }}
-  className="absolute top-4 right-4 
-             text-gray-400 hover:text-red-400 
-             transition-colors duration-200 
-             bg-transparent border-none outline-none shadow-none 
-             p-1 rounded-full"
-  style={{
-    backgroundColor: "transparent",
-    boxShadow: "none",
-  }}
->
-  <X size={22} />
-</button>
+                  onClick={() => {
+                    setShowLogoutConfirm(false);
+                    setShowDeleteConfirm(false);
+                  }}
+                  className="absolute top-4 right-4 text-white hover:text-red-400 p-1 rounded-full bg-transparent border-none outline-none shadow-none"
+                >
+                  <X size={22} />
+                </button>
 
-                 {/* Modal text */}
-          <h2 className="text-lg font-semibold mb-4 font-poppins">
-            {showLogoutConfirm
-              ? "Are you sure you want to logout?"
-              : "Are you sure you want to delete your account?"}
-          </h2>
+                <h2 className="text-lg font-semibold mb-4 font-poppins text-white">
+                  {showLogoutConfirm
+                    ? "Are you sure you want to logout?"
+                    : "Are you sure you want to delete your account?"}
+                </h2>
 
-          {/* Buttons */}
-          <div className="flex justify-center gap-4 mt-6">
-            <button
-              onClick={() => {
-                showLogoutConfirm ? handleLogout() : handleDeleteAccount();
-              }}
-              type="button"
-              className="!px-5 !py-2 !rounded-lg !font-medium 
-                         !bg-red-600 !text-white 
-                         hover:!bg-red-700 
-                         !border !border-red-600 
-                         transition-colors duration-200"
-            >
-              Yes
-            </button>
-            <button
-              onClick={() => {
-                setShowLogoutConfirm(false);
-                setShowDeleteConfirm(false);
-              }}
-              type="button"
-              className="!px-5 !py-2 !rounded-lg !font-medium 
-                         !bg-blue-600 !text-white 
-                         hover:!bg-blue-700 
-                         !border !border-blue-600 
-                         transition-colors duration-200"
-            >
-              Cancel
-            </button>
-          </div>
-        </motion.div>
-      </motion.div>
-    )}
-  </AnimatePresence>,
-  document.body
-)}
+                <div className="flex justify-center gap-4 mt-6">
+                  <button
+                    onClick={() => {
+                      showLogoutConfirm ? handleLogout() : handleDeleteAccount();
+                    }}
+                    type="button"
+                    className="px-5 py-2 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700 border border-red-600 transition-colors duration-200"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowLogoutConfirm(false);
+                      setShowDeleteConfirm(false);
+                    }}
+                    type="button"
+                    className="px-5 py-2 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 border border-blue-600 transition-colors duration-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Other Modals */}
       <AuthModal

@@ -6,6 +6,7 @@ import UniFinder from "./pages/UniFinder";
 import Results from "./pages/Results";
 import ComparePage from "./pages/ComparePage"; 
 import CompareProgram from "./pages/CompareProgram";
+import Management from "./pages/management";
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -16,7 +17,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/unifinder" element={<UniFinder />} />
         <Route path="/results" element={<Results />} /> {/* ✅ Add Results route */}
         <Route path="/compare" element={<ComparePage />} />
-        
+        <Route path="/management" element={<Management />} />
         <Route path="/compare-program" element={<CompareProgram />} />
       </Routes>
     </BrowserRouter>

@@ -11,10 +11,24 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 from dotenv import load_dotenv
-
-
+from fastapi import FastAPI, Depends, HTTPException, Header
 from db import db
 from recommendation import recommend
+from typing import Optional
+from bson import ObjectId
+from typing import List
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Body
+from fastapi import UploadFile, File
+import shutil
+import os
+from sentence_transformers import SentenceTransformer
+
+# Load 768-dimension sentence transformer
+embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+
+
 
 # --- Auth Setup ---
 security = HTTPBearer()
@@ -65,6 +79,92 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+admin_token_blacklist = set()
+
+# Dummy function to decode and verify admin JWT
+def decode_admin_token(token: str):
+    # Replace with your actual JWT decode logic
+    try:
+        # Example: decode and verify token
+        payload = {"sub": "admin@example.com"}  # Dummy payload
+        return payload
+    except:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    
+def create_admin_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({
+        "exp": expire,
+        "admin": True
+    })
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        if payload.get("admin") != True:
+            raise HTTPException(status_code=403, detail="Admin access required")
+
+        email = payload.get("sub")
+        admin = db["admin_users"].find_one({"email": email})
+
+        if not admin:
+            raise HTTPException(status_code=404, detail="Admin not found")
+
+        return admin
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+
+
+
+
+admin_token_blacklist = set()
+
+# Dummy function to decode and verify admin JWT
+def decode_admin_token(token: str):
+    # Replace with your actual JWT decode logic
+    try:
+        # Example: decode and verify token
+        payload = {"sub": "admin@example.com"}  # Dummy payload
+        return payload
+    except:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    
+def create_admin_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({
+        "exp": expire,
+        "admin": True
+    })
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        if payload.get("admin") != True:
+            raise HTTPException(status_code=403, detail="Admin access required")
+
+        email = payload.get("sub")
+        admin = db["admin_users"].find_one({"email": email})
+
+        if not admin:
+            raise HTTPException(status_code=404, detail="Admin not found")
+
+        return admin
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+
+
+
 
 
 def create_access_token(data: dict):
@@ -470,68 +570,202 @@ async def clear_history(current_user: dict = Depends(get_current_user)):
         return {"message": f"Successfully cleared {result.deleted_count} log(s)."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to clear history: {e}")
+    
+    
+    
+# ✅ GET - fetch all saved results for logged-in user
+@app.get("/previous-results")
+async def get_previous_results(current_user=Depends(get_current_user)):
+    results = list(
+        db["user_recommendations"].find(
+            {"user_email": current_user["email"]},
+            {"_id": 0}
+        )
+    )
+    return results
 
 
-# --- Previous Results Endpoints ---
-
-from fastapi.responses import JSONResponse
-
-
-from fastapi.responses import JSONResponse
-from fastapi import status, HTTPException
+# ✅ DELETE - clear all saved results for logged-in user
+@app.delete("/clear-results")
+async def clear_results(current_user=Depends(get_current_user)):
+    db["user_recommendations"].delete_many({"user_email": current_user["email"]})
+    return {"message": "Results cleared"}
 
 
-@app.get("/previous-results", summary="Get previous recommendation results")
-async def get_previous_results(
-    current_user: Optional[dict] = Depends(get_current_user_optional),
-):
-    """
-    Returns the list of previous recommendation results for a user.
-    Guests receive an empty list.
-    """
+    
+# -----------------------------
+# ADMIN LOGIN
+# -----------------------------
+@app.post("/admin/login")
+async def admin_login(credentials: dict):
+    email = credentials.get("email")
+    password = credentials.get("password")
+
+    admin = db["admin_users"].find_one({"email": email})
+    if not admin or not bcrypt.verify(password, admin["password"]):
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+
+    access_token = create_admin_token({"sub": admin["email"]})
+
+    return {
+        "access_token": access_token,
+        "admin": {
+            "email": admin["email"],
+            "full_name": admin["full_name"]
+        }
+    }
+
+
+# -----------------------------
+# ADMIN LOGOUT
+# -----------------------------
+@app.post("/admin/logout")
+async def admin_logout(authorization: Optional[str] = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+
+    token = authorization.split(" ")[1]
+
     try:
-        # 🧩 Handle guest users safely
-        if not current_user:
-            return JSONResponse(status_code=status.HTTP_200_OK, content={"results": []})
+        decode_admin_token(token)
+    except:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
-        # 🧠 Fetch results for the logged-in user
-        results = list(
-            db["user_recommendations"]
-            .find({"user_email": current_user["email"]}, {"_id": 0})
-            .sort("created_at", -1)
-        )
+    admin_token_blacklist.add(token)
 
-        print(results)
-
-        # 🕒 Convert datetime objects to ISO strings
-        for r in results:
-            if "created_at" in r:
-                r["created_at"] = r["created_at"].isoformat()
-
-        # ✅ Always return JSON
-        return JSONResponse(
-            status_code=status.HTTP_200_OK, content={"results": results}
-        )
-
-    except Exception as e:
-        print(f"❌ Error fetching previous results: {e}")
-        # Return valid JSON on server errors too
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": "Failed to fetch previous results"},
-        )
+    return {"message": "Admin logged out successfully"}
 
 
-@app.delete("/clear-results", summary="Clear all previous recommendation results")
-async def clear_results(current_user: dict = Depends(get_current_user)):
-    """
-    Deletes all recommendation results for the logged-in user.
-    """
+# -----------------------------
+# HELPER FUNCTIONS
+# -----------------------------
+def serialize_doc(doc):
+    doc = dict(doc)
+    doc["id"] = str(doc["_id"])
+    doc.pop("_id", None)
+    return doc
+
+
+
+def generate_vector(text: str):
+    if not text:
+        return []
+    return embedding_model.encode(text).tolist()  # ALWAYS 768 dims
+
+
+# ---------------------------------------
+# GET all programs (without vectors)
+# ---------------------------------------
+@app.get("/admin/program_vectors")
+async def get_all_program_vectors():
+    programs = list(db["program_vectors"].find({}, {"vector": 0}))
+    return [serialize_doc(p) for p in programs]
+
+# ---------------------------------------
+# GET recent programs
+# ---------------------------------------
+@app.get("/admin/program_vectors/recent")
+async def get_recent_programs():
+    programs = list(
+        db["program_vectors"]
+        .find({}, {"vector": 0})
+        .sort("updated_at", -1)
+        .limit(5)
+    )
+    return [serialize_doc(p) for p in programs]
+
+
+# ---------------------------------------
+# GET program by ID
+# ---------------------------------------
+@app.get("/admin/program_vectors/{program_id}")
+async def get_program(program_id: str):
     try:
-        result = db["user_recommendations"].delete_many(
-            {"user_email": current_user["email"]}
-        )
-        return {"message": f"Deleted {result.deleted_count} previous results"}
-    except Exception as e:
-        print(f"Error clearing results: {e}")
-        raise HTTPException(status_code=500, detail="Failed to clear previous results")
+        oid = ObjectId(program_id)
+    except:
+        raise HTTPException(status_code=400, detail="Invalid program ID")
+
+    program = db["program_vectors"].find_one({"_id": oid}, {"vector": 0})
+    if not program:
+        raise HTTPException(status_code=404, detail="Program not found")
+
+    return serialize_doc(program)
+
+
+
+# ---------------------------------------
+# CREATE program (auto-embed)
+# ---------------------------------------
+@app.post("/admin/program_vectors")
+async def create_program(program: dict):
+    description = program.get("description", "")
+
+    # 768-dim vector
+    program["vector"] = generate_vector(description)
+
+    program["created_at"] = datetime.utcnow()
+    program["updated_at"] = datetime.utcnow()
+
+    result = db["program_vectors"].insert_one(program)
+    program["id"] = str(result.inserted_id)
+
+    # Remove raw ObjectId for JSON safety
+    if "_id" in program:
+        del program["_id"]
+
+    return program
+
+# ---------------------------------------
+# UPDATE program (auto-embed if changed)
+# ---------------------------------------
+@app.put("/admin/program_vectors/{program_id}")
+async def update_program(program_id: str, updates: dict):
+    try:
+        oid = ObjectId(program_id)
+    except:
+        raise HTTPException(status_code=400, detail="Invalid program ID")
+
+    existing = db["program_vectors"].find_one({"_id": oid})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Program not found")
+
+    new_description = updates.get("description")
+
+    if new_description and new_description != existing.get("description"):
+        updates["vector"] = generate_vector(new_description)
+
+    updates["updated_at"] = datetime.utcnow()
+
+    db["program_vectors"].update_one({"_id": oid}, {"$set": updates})
+
+    updated = db["program_vectors"].find_one({"_id": oid})
+    return serialize_doc(updated)
+
+
+# ---------------------------------------
+# DELETE program
+# ---------------------------------------
+@app.delete("/admin/program_vectors/{program_id}")
+async def delete_program(program_id: str):
+    try:
+        oid = ObjectId(program_id)
+    except:
+        raise HTTPException(status_code=400, detail="Invalid program ID")
+
+    result = db["program_vectors"].delete_one({"_id": oid})
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Program not found")
+
+    return {"status": "success"}
+
+LOGO_FOLDER = "../frontend/public/logos"  # adjust path to your frontend folder
+
+@app.post("/admin/upload_logo")
+async def upload_logo(file: UploadFile = File(...)):
+    file_location = os.path.join(LOGO_FOLDER, file.filename)
+    with open(file_location, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    return {"filename": file.filename, "url": f"/logos/{file.filename}"}
+
+
