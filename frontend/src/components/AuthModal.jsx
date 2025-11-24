@@ -3,31 +3,53 @@ import axios from "axios";
 import { X, Eye, EyeOff } from "lucide-react";
 import PopupMessage from "./PopupMessage";
 
-export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+export default function AuthModal({
+  isOpen,
+  onClose,
+  defaultIsLogin = true,
+  setIsLoggedIn,
+  setIsAdmin,
+}) {
   const [isLogin, setIsLogin] = useState(defaultIsLogin);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState("user");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [popup, setPopup] = useState(null);
-  const [role, setRole] = useState("user");
 
+  // Reset all fields when modal opens/closes or defaultIsLogin changes
   useEffect(() => {
     setIsLogin(defaultIsLogin);
+    clearFields();
+  }, [isOpen, defaultIsLogin]);
+
+  const clearFields = () => {
     setEmail("");
     setPassword("");
     setFullName("");
     setRole("user");
-  }, [defaultIsLogin]);
+    setShowPassword(false);
+  };
 
   if (!isOpen)
-    return popup && (
-      <PopupMessage type={popup.type} message={popup.message} onClose={() => setPopup(null)} />
+    return (
+      popup && (
+        <PopupMessage
+          type={popup.type}
+          message={popup.message}
+          onClose={() => setPopup(null)}
+        />
+      )
     );
 
-  const isPasswordStrong = (password) =>
-    /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>/?]).{8,}$/.test(password);
+  const isPasswordStrong = (pwd) =>
+    /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>/?]).{8,}$/.test(
+      pwd
+    );
 
   const isEmailValid = (email) => email.includes("@") && email.endsWith(".com");
 
@@ -41,37 +63,42 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
           type: "error",
           message: "Please enter a valid email with '@' and ending in '.com'.",
         });
-        setLoading(false);
         return;
       }
 
       if (isLogin) {
+        // Determine endpoint based on role
         const endpoint =
           role === "admin"
-            ? "http://127.0.0.1:8000/admin/login"
-            : "http://127.0.0.1:8000/login";
-
+            ? `${API_BASE_URL}/admin/login`
+            : `${API_BASE_URL}/login`;
         const res = await axios.post(endpoint, { email, password });
         const { access_token, user, admin } = res.data;
 
-        if (role === "admin") {
-          localStorage.setItem("admin_token", access_token);
-          localStorage.setItem("admin", JSON.stringify(admin));
-        } else {
-          localStorage.setItem("token", access_token);
-          localStorage.setItem("user", JSON.stringify(user));
-        }
+        if (!access_token)
+          throw new Error("No access token received from server");
+
+        // Save token and user/admin info
+        const storageKey = role === "admin" ? "adminToken" : "token";
+        const infoKey = role === "admin" ? "admin" : "user";
+        const infoData = role === "admin" ? admin : user;
+
+        localStorage.setItem(storageKey, access_token);
+        localStorage.setItem(infoKey, JSON.stringify(infoData));
 
         setPopup({ type: "success", message: "Login successful!" });
-        setTimeout(onClose, 300);
+        setTimeout(() => {
+          onClose();
+          clearFields();
+        }, 300);
       } else {
+        // Registration
         if (!isPasswordStrong(password)) {
           setPopup({
             type: "error",
             message:
               "Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 symbol.",
           });
-          setLoading(false);
           return;
         }
 
@@ -85,13 +112,21 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
           type: "success",
           message: "Registration successful! You can now log in.",
         });
+        clearFields();
       }
     } catch (err) {
       console.error(err);
-      setPopup({
-        type: "error",
-        message: err.response?.data?.detail || "Something went wrong.",
-      });
+      if (!err.response) {
+        setPopup({
+          type: "error",
+          message: "Network error. Check your connection.",
+        });
+      } else {
+        setPopup({
+          type: "error",
+          message: err.response.data?.detail || "Something went wrong.",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -99,22 +134,32 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
 
   return (
     <>
+      {/* Modal Overlay */}
       <div
         className="fixed inset-0 z-[9999] flex items-center justify-center min-h-screen bg-black/80 backdrop-blur-sm font-[Poppins] px-4"
-        onClick={onClose}
+        onClick={() => {
+          onClose();
+          clearFields();
+        }}
       >
+        {/* Modal Content */}
         <div
           className="relative w-full max-w-lg rounded-3xl shadow-2xl bg-blue-800/50 backdrop-blur-md text-white p-10 flex flex-col items-center"
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            onClick={onClose}
+            onClick={() => {
+              onClose();
+              clearFields();
+            }}
             className="absolute top-4 right-4 text-blue-300 hover:text-red-400 transition-colors duration-200"
           >
             <X size={24} style={{ fill: "none", strokeWidth: 1.8 }} />
           </button>
 
-          <h1 className="text-lg font-semibold mb-6 text-blue-200">{isLogin ? "Login" : "Register"}</h1>
+          <h1 className="text-lg font-semibold mb-6 text-blue-200 font-poppins">
+            {isLogin ? "Login" : "Register"}
+          </h1>
 
           {isLogin && (
             <div className="flex space-x-4 mb-4 w-full">
@@ -122,7 +167,9 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
                 type="button"
                 onClick={() => setRole("user")}
                 className={`flex-1 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                  role === "user" ? "bg-blue-600 text-white" : "bg-white/10 text-blue-200 hover:bg-white/20"
+                  role === "user"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white/10 text-blue-200 hover:bg-white/20"
                 }`}
               >
                 User
@@ -131,7 +178,9 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
                 type="button"
                 onClick={() => setRole("admin")}
                 className={`flex-1 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                  role === "admin" ? "bg-blue-600 text-white" : "bg-white/10 text-blue-200 hover:bg-white/20"
+                  role === "admin"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white/10 text-blue-200 hover:bg-white/20"
                 }`}
               >
                 Admin
@@ -193,7 +242,10 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
                 Don’t have an account?{" "}
                 <button
                   type="button"
-                  onClick={() => setIsLogin(false)}
+                  onClick={() => {
+                    setIsLogin(false);
+                    clearFields();
+                  }}
                   className="font-medium text-blue-300 hover:text-blue-200 transition-colors duration-200"
                 >
                   Register
@@ -205,7 +257,10 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
                   Already have an account?{" "}
                   <button
                     type="button"
-                    onClick={() => setIsLogin(true)}
+                    onClick={() => {
+                      setIsLogin(true);
+                      clearFields();
+                    }}
                     className="font-medium text-blue-300 hover:text-blue-200 transition-colors duration-200"
                   >
                     Login
@@ -217,7 +272,13 @@ export default function AuthModal({ isOpen, onClose, defaultIsLogin = true }) {
         </div>
       </div>
 
-      {popup && <PopupMessage type={popup.type} message={popup.message} onClose={() => setPopup(null)} />}
+      {popup && (
+        <PopupMessage
+          type={popup.type}
+          message={popup.message}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </>
   );
 }

@@ -20,6 +20,26 @@ import AuthModal from "./AuthModal";
 import HistoryLogModal from "./HistoryLogModal";
 import PreviousResultsModal from "./PreviousResultsModal";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// Safe JSON parse function
+const safeParse = (key) => {
+  try {
+    const item = localStorage.getItem(key);
+
+    // Handle bad values like "undefined" or "null"
+    if (!item || item === "undefined" || item === "null") {
+      return null;
+    }
+
+    return JSON.parse(item);
+  } catch (err) {
+    console.error(`Failed to parse ${key}:`, err);
+    return null;
+  }
+};
+
+
 function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -29,15 +49,16 @@ function Navbar() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState(true);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [showPreviousResultsModal, setShowPreviousResultsModal] = useState(false);
+  const [showPreviousResultsModal, setShowPreviousResultsModal] =
+    useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
   const [popupVisible, setPopupVisible] = useState(false);
 
   // Determine login & role
-  const user = JSON.parse(localStorage.getItem("user"));
-  const admin = JSON.parse(localStorage.getItem("admin"));
+  const user = safeParse("user");
+  const admin = safeParse("admin");
   const isLoggedIn = !!user || !!admin;
   const isAdmin = !!admin;
 
@@ -61,13 +82,11 @@ function Navbar() {
   // Logout
   const handleLogout = async () => {
     const token = isAdmin
-      ? localStorage.getItem("admin_token")
+      ? localStorage.getItem("adminToken")
       : localStorage.getItem("token");
-
     const endpoint = isAdmin
-      ? "http://localhost:8000/admin/logout"
-      : "http://localhost:8000/logout";
-
+      ? `${API_BASE_URL}/admin/logout`
+      : `${API_BASE_URL}/logout`;
     if (!token) return;
 
     try {
@@ -109,21 +128,21 @@ function Navbar() {
 
   // Dark theme styles
   const navbarStyle = {
-    backgroundColor: "rgba(0,39,102,0.95)", // #002766
+    backgroundColor: "rgba(0,39,102,0.95)",
     color: "#ffffff",
     backdropFilter: "blur(6px)",
     WebkitBackdropFilter: "blur(6px)",
   };
 
   const dropdownContainerStyle = {
-    backgroundColor: "rgba(0,60,143,0.9)", // #003C8F
+    backgroundColor: "rgba(0,60,143,0.9)",
     color: "#ffffff",
     backdropFilter: "blur(8px)",
     WebkitBackdropFilter: "blur(8px)",
   };
 
   const modalContainerStyle = {
-    backgroundColor: "rgba(0,60,143,0.9)", // match dropdown
+    backgroundColor: "rgba(0,60,143,0.9)",
     color: "#ffffff",
     backdropFilter: "blur(8px)",
     WebkitBackdropFilter: "blur(8px)",
@@ -181,7 +200,11 @@ function Navbar() {
                     <motion.div
                       layoutId="tracker"
                       className="absolute inset-0 rounded-full bg-blue-500/40"
-                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 25,
+                      }}
                     />
                   )}
                   <Link
@@ -206,7 +229,10 @@ function Navbar() {
                            transition-all duration-300
                            bg-transparent hover:bg-blue-400/10 text-blue-100 border border-transparent focus:outline-none"
               >
-                <User className="w-5 h-5 sm:w-6 sm:h-6 pointer-events-none" style={{ color: "#bfdbfe" }} />
+                <User
+                  className="w-5 h-5 sm:w-6 sm:h-6 pointer-events-none"
+                  style={{ color: "#bfdbfe" }}
+                />
               </motion.button>
               <AnimatePresence>
                 {showAccountMenu && (
@@ -228,8 +254,10 @@ function Navbar() {
                             setShowAuthModal(true);
                             setShowAccountMenu(false);
                           }}
-                          // inline style as a backup for stubborn overrides
-                          style={{ color: "#fff", backgroundColor: "transparent" }}
+                          style={{
+                            color: "#fff",
+                            backgroundColor: "transparent",
+                          }}
                         >
                           <LogIn className="w-5 h-5" /> Login
                         </button>
@@ -242,7 +270,10 @@ function Navbar() {
                             setShowAuthModal(true);
                             setShowAccountMenu(false);
                           }}
-                          style={{ color: "#fff", backgroundColor: "transparent" }}
+                          style={{
+                            color: "#fff",
+                            backgroundColor: "transparent",
+                          }}
                         >
                           <UserPlus className="w-5 h-5" /> Register
                         </button>
@@ -253,7 +284,7 @@ function Navbar() {
                           type="button"
                           className="flex items-center gap-3 w-full text-left px-5 py-3 text-white hover:bg-blue-800/60 transition"
                           onClick={() => {
-                            navigate("/management");
+                            navigate("/dashboard");
                             setShowAccountMenu(false);
                           }}
                         >
@@ -280,7 +311,10 @@ function Navbar() {
                             setShowHistoryModal(true);
                             setShowAccountMenu(false);
                           }}
-                          style={{ color: "#fff", backgroundColor: "transparent" }}
+                          style={{
+                            color: "#fff",
+                            backgroundColor: "transparent",
+                          }}
                         >
                           <History className="w-5 h-5" /> History Log
                         </button>
@@ -292,7 +326,10 @@ function Navbar() {
                             setShowPreviousResultsModal(true);
                             setShowAccountMenu(false);
                           }}
-                          style={{ color: "#fff", backgroundColor: "transparent" }}
+                          style={{
+                            color: "#fff",
+                            backgroundColor: "transparent",
+                          }}
                         >
                           <FileText className="w-5 h-5" /> View Previous Results
                         </button>
@@ -304,7 +341,10 @@ function Navbar() {
                             setShowLogoutConfirm(true);
                             setShowAccountMenu(false);
                           }}
-                          style={{ color: "#fff", backgroundColor: "transparent" }}
+                          style={{
+                            color: "#fff",
+                            backgroundColor: "transparent",
+                          }}
                         >
                           <LogOut className="w-5 h-5" /> Logout
                         </button>
@@ -316,7 +356,10 @@ function Navbar() {
                             setShowDeleteConfirm(true);
                             setShowAccountMenu(false);
                           }}
-                          style={{ color: "#fff", backgroundColor: "transparent" }}
+                          style={{
+                            color: "#fff",
+                            backgroundColor: "transparent",
+                          }}
                         >
                           <Trash2 className="w-5 h-5" /> Delete Account
                         </button>
@@ -366,7 +409,9 @@ function Navbar() {
                 <div className="flex justify-center gap-4 mt-6">
                   <button
                     onClick={() => {
-                      showLogoutConfirm ? handleLogout() : handleDeleteAccount();
+                      showLogoutConfirm
+                        ? handleLogout()
+                        : handleDeleteAccount();
                     }}
                     type="button"
                     className="px-5 py-2 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700 border border-red-600 transition-colors duration-200"

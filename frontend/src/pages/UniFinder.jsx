@@ -561,30 +561,22 @@ function UniFinder() {
       </div>
 
       {/* Add Subject Button */}
-{Object.keys(grades).length < 8 && (
-  <div className="flex justify-end mt-3">
-    <button
-      onClick={() => {
-        const newSubjectName = `Subject ${Object.keys(grades).length + 1}`;
-        setGrades((prev) => ({ ...prev, [newSubjectName]: "" }));
-      }}
-      className="flex items-center gap-1.5 
-                 px-3 py-1.5 sm:px-4 sm:py-2
-                 rounded-lg 
-                 text-xs sm:text-sm 
-                 font-poppins text-white
-                 border border-white/20 backdrop-blur-sm transition
-                 hover:border-blue-300 hover:bg-blue-400/20
-                 disabled:opacity-50 disabled:cursor-not-allowed"
-      style={{ backgroundColor: "rgba(59, 130, 246, 0.15)" }}
-    >
-      <span className="text-base leading-none text-blue-300">＋</span>
-      Add Subject
-    </button>
-  </div>
-)}
-
-
+      {Object.keys(grades).length < 8 && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => {
+              const newSubjectName = `Subject ${Object.keys(grades).length + 1}`;
+              setGrades((prev) => ({ ...prev, [newSubjectName]: "" }));
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-400/10 border border-blue-300/20 
+                       hover:bg-blue-400/20 text-blue-300 font-medium font-poppins text-sm sm:text-base 
+                       transition-all duration-200 shadow-sm hover:shadow-blue-400/20"
+          >
+            <span className="text-lg leading-none">＋</span>
+            Add Subject
+          </button>
+        </div>
+      )}
     </div>
 
               {/* Continue Button */}
