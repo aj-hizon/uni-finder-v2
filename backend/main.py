@@ -1,44 +1,129 @@
 import os
-import psutil
 import time
-import bcrypt as py_bcrypt
-from typing import List, Optional
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from fastapi import FastAPI, HTTPException, Query, Depends, Request
+from typing import List, Optional
+
+import bcrypt as py_bcrypt
+from bson import ObjectId
+from dotenv import load_dotenv
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Query,
+    Depends,
+    Request,
+    Header,
+    UploadFile,
+    File,
+    Body,
+    Path,
+    APIRouter,
+    status,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, EmailStr
-from dotenv import load_dotenv
-from fastapi import FastAPI, Depends, HTTPException, Header
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+import shutil
+
 from db import db
 from recommendation import recommend
-from typing import Optional
-from bson import ObjectId
-from typing import List
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
-from fastapi import FastAPI, HTTPException, Body
-from fastapi import UploadFile, File
-import shutil
-import os
 from sentence_transformers import SentenceTransformer
 
-# Load 768-dimension sentence transformer
-embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
-
-
-
-# --- Auth Setup ---
-security = HTTPBearer()
+# -----------------------------
+# CONFIGURATION
+# -----------------------------
 load_dotenv()
-
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
+
+embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+LOGO_FOLDER = "../frontend/public/logos"
+
+admin_token_blacklist = set()
+
+# -----------------------------
+# APP INIT
+# -----------------------------
+app = FastAPI(
+    title="UniFinder API",
+    description="API for UniFinder, providing program recommendations and data.",
+    version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
+# -----------------------------
+# UTILS
+# -----------------------------
+def serialize_doc(doc, remove_sensitive=True):
+    doc = dict(doc)
+    doc["id"] = str(doc["_id"])
+    doc.pop("_id", None)
+    if remove_sensitive and "password" in doc:
+        doc.pop("password")
+    return doc
+
+
+def generate_vector(text: str):
+    if not text:
+        return []
+    return embedding_model.encode(text).tolist()
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (
+        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_admin_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (
+        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    to_encode.update({"exp": expire, "admin": True})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def get_collection_by_type(program_type: str = "all_programs"):
+    return (
+        db["program_vectors"]
+        if program_type == "program_vectors"
+        else db["all_programs"]
+    )
+
+
+def log_activity(event: str, details: str, user: str = "System"):
+    db["activities"].insert_one(
+        {
+            "event": event,
+            "details": details,
+            "user": user,
+            "timestamp": datetime.utcnow(),
+        }
+    )
+
+
+# -----------------------------
+# AUTHENTICATION
+# -----------------------------
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
     try:
@@ -54,143 +139,6 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
-# --- App Setup ---
-app = FastAPI(
-    title="UniFinder API",
-    description="API for UniFinder, providing program recommendations and data.",
-    version="1.0.0",
-)
-
-
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    print(f"Incoming request: {request.method} {request.url}")
-    response = await call_next(request)
-    print(f"Response status: {response.status_code}")
-    return response
-
-
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-admin_token_blacklist = set()
-
-# Dummy function to decode and verify admin JWT
-def decode_admin_token(token: str):
-    # Replace with your actual JWT decode logic
-    try:
-        # Example: decode and verify token
-        payload = {"sub": "admin@example.com"}  # Dummy payload
-        return payload
-    except:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    
-def create_admin_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({
-        "exp": expire,
-        "admin": True
-    })
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-
-        if payload.get("admin") != True:
-            raise HTTPException(status_code=403, detail="Admin access required")
-
-        email = payload.get("sub")
-        admin = db["admin_users"].find_one({"email": email})
-
-        if not admin:
-            raise HTTPException(status_code=404, detail="Admin not found")
-
-        return admin
-
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid admin token")
-
-
-
-
-admin_token_blacklist = set()
-
-# Dummy function to decode and verify admin JWT
-def decode_admin_token(token: str):
-    # Replace with your actual JWT decode logic
-    try:
-        # Example: decode and verify token
-        payload = {"sub": "admin@example.com"}  # Dummy payload
-        return payload
-    except:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    
-def create_admin_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({
-        "exp": expire,
-        "admin": True
-    })
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-
-        if payload.get("admin") != True:
-            raise HTTPException(status_code=403, detail="Admin access required")
-
-        email = payload.get("sub")
-        admin = db["admin_users"].find_one({"email": email})
-
-        if not admin:
-            raise HTTPException(status_code=404, detail="Admin not found")
-
-        return admin
-
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid admin token")
-
-
-
-
-
-def create_access_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-# --- Request Models ---
-class SearchRequest(BaseModel):
-    answers: dict
-    grades: Optional[dict] = None  # ✅ NEW: user’s grades
-    school_type: str = "any"
-    locations: Optional[List[str]] = None
-    max_budget: Optional[float] = None
-
-
-class RegisterRequest(BaseModel):
-    email: str
-    password: str
-    full_name: str
-
-
-# --- Optional Authentication ---
 async def get_current_user_optional(request: Request):
     token = request.headers.get("Authorization")
     if not token:
@@ -203,339 +151,41 @@ async def get_current_user_optional(request: Request):
         return None
 
 
-# --- Routes ---
+def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    if token in admin_token_blacklist:
+        raise HTTPException(status_code=401, detail="Token blacklisted")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if not payload.get("admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        email = payload.get("sub")
+        admin = db["admin_users"].find_one({"email": email})
+        if not admin:
+            raise HTTPException(status_code=404, detail="Admin not found")
+        return admin
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+
+
+# -----------------------------
+# MIDDLEWARE
+# -----------------------------
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    print(f"Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    print(f"Response status: {response.status_code}")
+    return response
+
+
+# -----------------------------
+# PUBLIC ROUTES
+# -----------------------------
 @app.get("/programs/all", summary="Get all programs")
 async def get_all_programs():
-    try:
-        data = list(db["all_programs"].find({}, {"_id": 0}))
-        return JSONResponse(content=data)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching all programs: {e}")
-
-
-@app.post("/search", summary="Get program recommendations")
-async def search(
-    request_data: SearchRequest,
-    current_user: Optional[dict] = Depends(get_current_user_optional),
-):
-
-    user_email = current_user["email"] if current_user else "guest"
-    print(user_email)
-
-    # Start timer for reference (optional)
-    start_time = time.time()
-
-    # Call recommendation logic
-    result = recommend(
-        answers=request_data.answers,
-        user_grades=request_data.grades,
-        school_type=request_data.school_type,
-        locations=request_data.locations,
-        max_budget=request_data.max_budget,
-    )
-
-    elapsed_time = time.time() - start_time
-    print(f"⏱️ Time taken: {elapsed_time:.2f} sec")
-
-    # Save history for logged-in users
-    if current_user:
-        db["user_recommendations"].insert_one(
-            {
-                "user_email": user_email,
-                "answers": request_data.answers,
-                "grades": request_data.grades,
-                "subjects": (
-                    list(request_data.grades.keys()) if request_data.grades else []
-                ),
-                "filters": {
-                    "school_type": request_data.school_type,
-                    "locations": request_data.locations,
-                    "max_budget": request_data.max_budget,
-                },
-                "result_type": result.get("type"),
-                "results": result.get("results", []),
-                "weak_matches": result.get("weak_matches", []),
-                "matched_category": result.get("matched_category"),
-                "top_schools_for_category": result.get("top_schools_for_category", []),
-                "created_at": datetime.utcnow(),
-            }
-        )
-
-    return result
-
-
-@app.get("/recommendation-history", summary="Get user's recommendation history")
-async def get_recommendation_history(current_user: dict = Depends(get_current_user)):
-    try:
-        print(f"Fetching recommendation history for user: {current_user['email']}")
-
-        if not current_user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        # Get raw data from MongoDB
-        raw_data = list(
-            db["user_recommendations"]
-            .find(
-                {"user_email": current_user["email"]},
-                {
-                    "_id": 0,
-                    "user_email": 1,
-                    "answers": 1,
-                    "grades": 1,
-                    "filters": 1,
-                    "results": 1,
-                    "created_at": 1,
-                },
-            )
-            .sort("created_at", -1)
-        )
-
-        # Convert datetime objects to ISO format strings
-        data = []
-        for record in raw_data:
-            if "created_at" in record:
-                record["created_at"] = record["created_at"].isoformat()
-            data.append(record)
-
-        print(f"Found {len(data)} recommendations for user: {current_user['email']}")
-
-        if not data:
-            return {"message": "No recommendation history found", "data": []}
-
-        return JSONResponse(
-            content={
-                "message": "Recommendation history retrieved successfully",
-                "count": len(data),
-                "data": data,
-            }
-        )
-
-    except Exception as e:
-        print(f"Error fetching recommendation history: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to fetch recommendation history: {str(e)}"
-        )
-
-
-@app.get(
-    "/programs/from-file", summary="Get program vectors (deprecated or specific use)"
-)
-async def get_programs_from_file():
-    try:
-        collection = db["program_vectors"]
-        data = list(collection.find({}, {"_id": 0}))
-        return JSONResponse(content=data)
-    except Exception as e:
-        print(f"Error fetching program vectors from file: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="Internal server error while fetching program vectors.",
-        )
-
-
-@app.get("/api/school-strengths", summary="Get school strengths data")
-async def get_school_strengths():
-    try:
-        collection = db["school_strengths"]
-        docs = list(collection.find({}, {"_id": 0}))
-        return JSONResponse(content={"schools": docs})
-    except Exception as e:
-        print(f"Error fetching school_strengths: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Database error while fetching school strengths: {e}",
-        )
-
-
-@app.get("/school-rankings", summary="Get school rankings data")
-async def get_school_rankings():
-    try:
-        collection = db["school_rankings"]
-        doc = collection.find_one({}, {"_id": 0})
-        return JSONResponse(content=doc if doc else {}, status_code=200)
-    except Exception as e:
-        print(f"Error fetching school_rankings: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Database error while fetching school rankings: {e}",
-        )
-
-
-@app.get("/programs/search", summary="Search programs by name, location, or category")
-async def search_programs(
-    name: Optional[str] = Query(None, max_length=100),
-    location: Optional[str] = Query(None, max_length=100),
-    category: Optional[str] = Query(None, max_length=100),
-):
-    query = {}
-    if name:
-        query["name"] = {"$regex": name, "$options": "i"}
-    if location:
-        query["location"] = {"$regex": location, "$options": "i"}
-    if category:
-        query["category"] = {"$regex": category, "$options": "i"}
-
-    try:
-        data = list(db["all_programs"].find(query, {"_id": 0}))
-        return JSONResponse(content=data)
-    except Exception as e:
-        print(f"Error searching programs: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Database error during program search: {e}"
-        )
-
-
-@app.post("/register", summary="Register a new user")
-async def register_user(request: RegisterRequest):
-    try:
-        email = request.email
-        password = request.password
-        full_name = request.full_name
-
-        if not email or not password or not full_name:
-            raise HTTPException(status_code=400, detail="All fields are required")
-
-        # Check if user already exists
-        existing_user = db["users"].find_one({"email": email, "deleted_at": None})
-        if existing_user:
-            raise HTTPException(status_code=400, detail="Email already registered")
-
-        # Hash password
-        salt = py_bcrypt.gensalt()
-        encoded_password = password.encode("utf-8")[:72]
-        hashed_password = py_bcrypt.hashpw(encoded_password, salt)
-
-        # Create user document
-        user = {
-            "email": email,
-            "full_name": full_name,
-            "password": hashed_password.decode("utf-8"),
-            "created_at": datetime.utcnow(),
-            "deleted_at": None,
-            "last_login": None,
-        }
-
-        print("User inserted:", user)
-
-        db["users"].insert_one(user)
-
-        # Generate access token
-        access_token = create_access_token(data={"sub": email})
-
-        # Log registration
-        db["user_logs"].insert_one(
-            {"email": email, "action": "register", "timestamp": datetime.utcnow()}
-        )
-
-        return {"access_token": access_token, "token_type": "bearer", "email": email}
-
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        print(f"Registration error: {e}")
-        raise HTTPException(status_code=500, detail="Registration failed")
-
-
-@app.post("/login", summary="Login user and get token")
-async def login_user(credentials: dict):
-    try:
-        email = credentials.get("email")
-        password = credentials.get("password")
-
-        if not email or not password:
-            raise HTTPException(status_code=400, detail="Email and password required")
-
-        user = db["users"].find_one({"email": email, "deleted_at": None})
-        if not user:
-            raise HTTPException(status_code=401, detail="Invalid email or password")
-
-        # Verify password using bcrypt
-        if not py_bcrypt.checkpw(
-            password.encode("utf-8"), user["password"].encode("utf-8")
-        ):
-            raise HTTPException(status_code=401, detail="Invalid email or password")
-
-        # Update last login
-        db["users"].update_one(
-            {"email": email}, {"$set": {"last_login": datetime.utcnow()}}
-        )
-
-        # Log the login
-        db["user_logs"].insert_one(
-            {"email": email, "action": "login", "timestamp": datetime.utcnow()}
-        )
-
-        access_token = create_access_token(data={"sub": email})
-        return {"access_token": access_token, "token_type": "bearer", "email": email}
-
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        print(f"Login error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Login failed")
-
-
-@app.delete(
-    "/delete-account",
-    summary="Delete the logged-in user account and past recommendations",
-)
-async def delete_account(current_user: dict = Depends(get_current_user)):
-    try:
-        db["users"].update_one(
-            {"_id": current_user["_id"]}, {"$set": {"deleted_at": datetime.utcnow()}}
-        )
-
-        result = db["user_recommendations"].delete_many(
-            {"user_email": current_user["email"]}
-        )
-
-        return {
-            "message": "Account deleted successfully.",
-            "deleted_recommendations": result.deleted_count,
-        }
-
-    except Exception as e:
-        print(f"Error deleting account: {e}")
-        raise HTTPException(status_code=500, detail="Failed to delete account")
-
-
-@app.post("/logout", summary="Log the user out")
-async def logout_user(request: Request, current_user: dict = Depends(get_current_user)):
-    try:
-        # Get client IP and user agent for security logging
-        client_ip = request.client.host
-        user_agent = request.headers.get("user-agent", "Unknown")
-
-        # Log the logout attempt
-        db["user_logs"].insert_one(
-            {
-                "email": current_user["email"],
-                "action": "logout",
-                "timestamp": datetime.utcnow(),
-                "ip_address": client_ip,
-                "user_agent": user_agent,
-                "status": "success",
-            }
-        )
-
-        # Optional: Invalidate token here if you implement token blacklisting
-
-        return JSONResponse(
-            status_code=200, content={"message": "Logged out successfully"}
-        )
-
-    except Exception as e:
-        # Log the error
-        db["user_logs"].insert_one(
-            {
-                "email": current_user["email"],
-                "action": "logout",
-                "timestamp": datetime.utcnow(),
-                "status": "failed",
-                "error": str(e),
-            }
-        )
-        raise HTTPException(status_code=500, detail="Logout failed. Please try again.")
+    programs = list(db["all_programs"].find({}, {"_id": 0}))
+    return JSONResponse(content=programs)
 
 
 @app.get("/history-log", summary="Get user's account info and activity history")
@@ -562,210 +212,341 @@ async def get_history_log(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=f"Error fetching history log: {e}")
 
 
-@app.delete("/clear-history", summary="Clear all login/logout history for current user")
-async def clear_history(current_user: dict = Depends(get_current_user)):
+@app.get("/previous-results", summary="Get previous recommendation results")
+async def get_previous_results(
+    current_user: Optional[dict] = Depends(get_current_user_optional),
+):
+    """
+    Returns the list of previous recommendation results for a user.
+    Guests receive an empty list.
+    """
     try:
-        email = current_user["email"]
-        result = db["user_logs"].delete_many({"email": email})
-        return {"message": f"Successfully cleared {result.deleted_count} log(s)."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to clear history: {e}")
-    
-    
-    
-# ✅ GET - fetch all saved results for logged-in user
-@app.get("/previous-results")
-async def get_previous_results(current_user=Depends(get_current_user)):
-    results = list(
-        db["user_recommendations"].find(
-            {"user_email": current_user["email"]},
-            {"_id": 0}
+        # 🧩 Handle guest users safely
+        if not current_user:
+            return JSONResponse(status_code=status.HTTP_200_OK, content={"results": []})
+
+        # 🧠 Fetch results for the logged-in user
+        results = list(
+            db["user_recommendations"]
+            .find({"user_email": current_user["email"]}, {"_id": 0})
+            .sort("created_at", -1)
         )
+
+        print(results)
+
+        # 🕒 Convert datetime objects to ISO strings
+        for r in results:
+            if "created_at" in r:
+                r["created_at"] = r["created_at"].isoformat()
+
+        # ✅ Always return JSON
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, content={"results": results}
+        )
+
+    except Exception as e:
+        print(f"❌ Error fetching previous results: {e}")
+        # Return valid JSON on server errors too
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "Failed to fetch previous results"},
+        )
+
+
+@app.get("/api/school-strengths", summary="Get school strengths data")
+async def get_school_strengths():
+    try:
+        collection = db["school_strengths"]
+        docs = list(collection.find({}, {"_id": 0}))
+        return JSONResponse(content={"schools": docs})
+    except Exception as e:
+        print(f"Error fetching school_strengths: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error while fetching school strengths: {e}",
+        )
+
+
+@app.post("/search", summary="Get program recommendations")
+async def search(
+    request_data: dict,
+    current_user: Optional[dict] = Depends(get_current_user_optional),
+):
+    user_email = current_user["email"] if current_user else "guest"
+    start_time = time.time()
+
+    result = recommend(
+        answers=request_data.get("answers", {}),
+        user_grades=request_data.get("grades"),
+        school_type=request_data.get("school_type", "any"),
+        locations=request_data.get("locations"),
+        max_budget=request_data.get("max_budget"),
     )
-    return results
+
+    elapsed_time = time.time() - start_time
+    print(f"⏱️ Time taken: {elapsed_time:.2f} sec")
+
+    if current_user:
+        db["user_recommendations"].insert_one(
+            {
+                "user_email": user_email,
+                "answers": request_data.get("answers"),
+                "grades": request_data.get("grades"),
+                "filters": {
+                    "school_type": request_data.get("school_type", "any"),
+                    "locations": request_data.get("locations"),
+                    "max_budget": request_data.get("max_budget"),
+                },
+                "result_type": result.get("type"),
+                "results": result.get("results", []),
+                "weak_matches": result.get("weak_matches", []),
+                "matched_category": result.get("matched_category"),
+                "top_schools_for_category": result.get("top_schools_for_category", []),
+                "created_at": datetime.utcnow(),
+            }
+        )
+        log_activity("Search", f"User {user_email} performed a search", user_email)
+
+    return result
 
 
-# ✅ DELETE - clear all saved results for logged-in user
-@app.delete("/clear-results")
-async def clear_results(current_user=Depends(get_current_user)):
-    db["user_recommendations"].delete_many({"user_email": current_user["email"]})
-    return {"message": "Results cleared"}
+@app.post("/register", summary="Register a new user")
+async def register_user(request: dict):
+    email = request.get("email")
+    password = request.get("password")
+    full_name = request.get("full_name")
+    if not email or not password or not full_name:
+        raise HTTPException(status_code=400, detail="All fields are required")
+
+    existing_user = db["users"].find_one({"email": email, "deleted_at": None})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed = py_bcrypt.hashpw(password.encode("utf-8")[:72], py_bcrypt.gensalt())
+    user = {
+        "email": email,
+        "full_name": full_name,
+        "password": hashed.decode("utf-8"),
+        "created_at": datetime.utcnow(),
+        "deleted_at": None,
+        "last_login": None,
+    }
+    db["users"].insert_one(user)
+
+    access_token = create_access_token({"sub": email})
+    log_activity("User Registration", f"User {email} registered", email)
+
+    return {"access_token": access_token, "token_type": "bearer", "email": email}
 
 
-    
+@app.post("/login", summary="Login user and get token")
+async def login_user(credentials: dict):
+    email = credentials.get("email")
+    password = credentials.get("password")
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password required")
+
+    user = db["users"].find_one({"email": email, "deleted_at": None})
+    if not user or not py_bcrypt.checkpw(
+        password.encode("utf-8"), user["password"].encode("utf-8")
+    ):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    db["users"].update_one(
+        {"email": email}, {"$set": {"last_login": datetime.utcnow()}}
+    )
+    log_activity("User Login", f"User {email} logged in", email)
+
+    access_token = create_access_token({"sub": email})
+
+    # Return the user (serialized without password) so frontend can save it
+    user_safe = serialize_doc(user, remove_sensitive=True)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user_safe,
+        "email": email,
+    }
+
+
+@app.delete("/delete-account", summary="Delete logged-in user account")
+async def delete_account(current_user: dict = Depends(get_current_user)):
+    db["users"].update_one(
+        {"_id": current_user["_id"]}, {"$set": {"deleted_at": datetime.utcnow()}}
+    )
+    result = db["user_recommendations"].delete_many(
+        {"user_email": current_user["email"]}
+    )
+    log_activity(
+        "User Deleted",
+        f"User {current_user['email']} deleted their account",
+        current_user["email"],
+    )
+    return {
+        "message": "Account deleted",
+        "deleted_recommendations": result.deleted_count,
+    }
+
+
+@app.post("/logout", summary="Log out user")
+async def logout_user(request: Request, current_user: dict = Depends(get_current_user)):
+    log_activity(
+        "User Logout", f"User {current_user['email']} logged out", current_user["email"]
+    )
+    return {"message": "Logged out successfully"}
+
+
 # -----------------------------
-# ADMIN LOGIN
+# ADMIN ROUTES
 # -----------------------------
 @app.post("/admin/login")
 async def admin_login(credentials: dict):
     email = credentials.get("email")
     password = credentials.get("password")
-
     admin = db["admin_users"].find_one({"email": email})
-    if not admin or not bcrypt.verify(password, admin["password"]):
+    if not admin or not pwd_context.verify(password, admin["password"]):
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
-
-    access_token = create_admin_token({"sub": admin["email"]})
-
+    log_activity("Admin Login", f"Admin {email} logged in", email)
+    token = create_admin_token({"sub": email, "admin": True})
     return {
-        "access_token": access_token,
-        "admin": {
-            "email": admin["email"],
-            "full_name": admin["full_name"]
-        }
+        "access_token": token,
+        "admin": {"email": email, "full_name": admin["full_name"]},
     }
 
 
-# -----------------------------
-# ADMIN LOGOUT
-# -----------------------------
 @app.post("/admin/logout")
 async def admin_logout(authorization: Optional[str] = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
-
+        raise HTTPException(status_code=401, detail="Missing or invalid token")
     token = authorization.split(" ")[1]
-
-    try:
-        decode_admin_token(token)
-    except:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
     admin_token_blacklist.add(token)
-
+    log_activity("Admin Logout", f"Admin token blacklisted", "System")
     return {"message": "Admin logged out successfully"}
 
 
-# -----------------------------
-# HELPER FUNCTIONS
-# -----------------------------
-def serialize_doc(doc):
-    doc = dict(doc)
-    doc["id"] = str(doc["_id"])
-    doc.pop("_id", None)
-    return doc
+@app.get("/admin/users")
+async def admin_get_users(current_admin: dict = Depends(get_current_admin)):
+    users = list(db["users"].find({"deleted_at": None}))
+    return [serialize_doc(u) for u in users]
 
 
-
-def generate_vector(text: str):
-    if not text:
-        return []
-    return embedding_model.encode(text).tolist()  # ALWAYS 768 dims
-
-
-# ---------------------------------------
-# GET all programs (without vectors)
-# ---------------------------------------
-@app.get("/admin/program_vectors")
-async def get_all_program_vectors():
-    programs = list(db["program_vectors"].find({}, {"vector": 0}))
-    return [serialize_doc(p) for p in programs]
-
-# ---------------------------------------
-# GET recent programs
-# ---------------------------------------
-@app.get("/admin/program_vectors/recent")
-async def get_recent_programs():
-    programs = list(
-        db["program_vectors"]
-        .find({}, {"vector": 0})
-        .sort("updated_at", -1)
-        .limit(5)
-    )
-    return [serialize_doc(p) for p in programs]
-
-
-# ---------------------------------------
-# GET program by ID
-# ---------------------------------------
-@app.get("/admin/program_vectors/{program_id}")
-async def get_program(program_id: str):
+@app.delete("/admin/users/{user_id}")
+async def admin_delete_user(
+    user_id: str = Path(...), current_admin: dict = Depends(get_current_admin)
+):
     try:
-        oid = ObjectId(program_id)
+        oid = ObjectId(user_id)
     except:
-        raise HTTPException(status_code=400, detail="Invalid program ID")
+        raise HTTPException(status_code=400, detail="Invalid user ID")
+    user = db["users"].find_one({"_id": oid, "deleted_at": None})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    db["users"].update_one({"_id": oid}, {"$set": {"deleted_at": datetime.utcnow()}})
+    deleted_recs = db["user_recommendations"].delete_many({"user_email": user["email"]})
+    log_activity(
+        "User Deleted", f"Admin deleted user {user['email']}", current_admin["email"]
+    )
+    return {
+        "status": "success",
+        "deleted_user_id": user_id,
+        "deleted_recommendations_count": deleted_recs.deleted_count,
+    }
 
-    program = db["program_vectors"].find_one({"_id": oid}, {"vector": 0})
-    if not program:
-        raise HTTPException(status_code=404, detail="Program not found")
 
-    return serialize_doc(program)
+@app.get("/admin/activities")
+async def get_activities(
+    limit: Optional[int] = None, current_admin: dict = Depends(get_current_admin)
+):
+    query = db["activities"].find().sort("timestamp", -1)
+
+    if limit is not None:
+        query = query.limit(limit)
+
+    activities = list(query)
+    print("Fetched activities:", activities, flush=True)
+
+    return [serialize_doc(a, remove_sensitive=False) for a in activities]
 
 
+# -----------------------------
+# ADMIN PROGRAM CRUD
+# -----------------------------
+@app.get("/admin/{program_type}")
+async def admin_get_programs(
+    program_type: str, current_admin: dict = Depends(get_current_admin)
+):
+    collection = get_collection_by_type(program_type)
+    return [serialize_doc(p) for p in collection.find()]
 
-# ---------------------------------------
-# CREATE program (auto-embed)
-# ---------------------------------------
-@app.post("/admin/program_vectors")
-async def create_program(program: dict):
-    description = program.get("description", "")
 
-    # 768-dim vector
-    program["vector"] = generate_vector(description)
-
-    program["created_at"] = datetime.utcnow()
-    program["updated_at"] = datetime.utcnow()
-
-    result = db["program_vectors"].insert_one(program)
+@app.post("/admin/{program_type}")
+async def admin_create_program(
+    program_type: str,
+    program: dict = Body(...),
+    current_admin: dict = Depends(get_current_admin),
+):
+    collection = get_collection_by_type(program_type)
+    if program_type == "program_vectors" and "description" in program:
+        program["vector"] = generate_vector(program["description"])
+    program["created_at"] = program["updated_at"] = datetime.utcnow()
+    result = collection.insert_one(program)
     program["id"] = str(result.inserted_id)
-
-    # Remove raw ObjectId for JSON safety
-    if "_id" in program:
-        del program["_id"]
-
+    program.pop("_id", None)
+    log_activity(
+        "Program Created",
+        f"Program '{program.get('name')}' added",
+        current_admin["email"],
+    )
     return program
 
-# ---------------------------------------
-# UPDATE program (auto-embed if changed)
-# ---------------------------------------
-@app.put("/admin/program_vectors/{program_id}")
-async def update_program(program_id: str, updates: dict):
+
+@app.put("/admin/{program_type}/{program_id}")
+async def admin_update_program(
+    program_type: str,
+    program_id: str,
+    updates: dict = Body(...),
+    current_admin: dict = Depends(get_current_admin),
+):
+    collection = get_collection_by_type(program_type)
     try:
         oid = ObjectId(program_id)
     except:
         raise HTTPException(status_code=400, detail="Invalid program ID")
-
-    existing = db["program_vectors"].find_one({"_id": oid})
+    existing = collection.find_one({"_id": oid})
     if not existing:
         raise HTTPException(status_code=404, detail="Program not found")
-
-    new_description = updates.get("description")
-
-    if new_description and new_description != existing.get("description"):
-        updates["vector"] = generate_vector(new_description)
-
+    if updates.get("description") and updates["description"] != existing.get(
+        "description"
+    ):
+        updates["vector"] = generate_vector(updates["description"])
     updates["updated_at"] = datetime.utcnow()
+    collection.update_one({"_id": oid}, {"$set": updates})
+    updated = serialize_doc(collection.find_one({"_id": oid}))
+    log_activity(
+        "Program Updated",
+        f"Program '{updated.get('name')}' updated",
+        current_admin["email"],
+    )
+    return updated
 
-    db["program_vectors"].update_one({"_id": oid}, {"$set": updates})
 
-    updated = db["program_vectors"].find_one({"_id": oid})
-    return serialize_doc(updated)
-
-
-# ---------------------------------------
-# DELETE program
-# ---------------------------------------
-@app.delete("/admin/program_vectors/{program_id}")
-async def delete_program(program_id: str):
+@app.delete("/admin/{program_type}/{program_id}")
+async def admin_delete_program(
+    program_type: str, program_id: str, current_admin: dict = Depends(get_current_admin)
+):
+    collection = get_collection_by_type(program_type)
     try:
         oid = ObjectId(program_id)
     except:
         raise HTTPException(status_code=400, detail="Invalid program ID")
-
-    result = db["program_vectors"].delete_one({"_id": oid})
-
-    if result.deleted_count == 0:
+    program = collection.find_one({"_id": oid})
+    if not program:
         raise HTTPException(status_code=404, detail="Program not found")
-
+    collection.delete_one({"_id": oid})
+    log_activity(
+        "Program Deleted",
+        f"Program '{program.get('name')}' deleted",
+        current_admin["email"],
+    )
     return {"status": "success"}
-
-LOGO_FOLDER = "../frontend/public/logos"  # adjust path to your frontend folder
-
-@app.post("/admin/upload_logo")
-async def upload_logo(file: UploadFile = File(...)):
-    file_location = os.path.join(LOGO_FOLDER, file.filename)
-    with open(file_location, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-    return {"filename": file.filename, "url": f"/logos/{file.filename}"}
-
-
